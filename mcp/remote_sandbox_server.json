@@ -1,0 +1,14 @@
+{
+  "name": "oracle-forge-remote-sandbox",
+  "transport": "stdio",
+  "command": "python3",
+  "args": [
+    "/Users/gersumasfaw/week8_9/scripts/run_remote_sandbox_mcp.py"
+  ],
+  "env": {
+    "REMOTE_SANDBOX_ENABLED": "true",
+    "REMOTE_SANDBOX_HOST": "trp-gpt5",
+    "REMOTE_SANDBOX_DAB_PATH": "/shared/DataAgentBench",
+    "REMOTE_SANDBOX_PYTHON": "/shared/DataAgentBench/oracle_forge_v3/venv/bin/python"
+  }
+}

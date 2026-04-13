@@ -1,0 +1,65 @@
+# Submission-facing Oracle Forge MCP tools file.
+# This file declares all four required database connection types.
+
+kind: sources
+name: dab-postgres
+type: postgres
+host: ${PG_HOST:127.0.0.1}
+port: ${PG_PORT:5432}
+database: ${PG_DB:test}
+user: ${PG_USER:postgres}
+password: ${PG_PASSWORD}
+---
+kind: sources
+name: dab-mongodb
+type: mongodb
+uri: ${MONGO_URI:mongodb://localhost:27017/}
+---
+kind: sources
+name: crmarenapro-core-crm
+type: sqlite
+database: ${CRM_CORE_SQLITE_PATH:/shared/DataAgentBench/query_crmarenapro/query_dataset/core_crm.db}
+---
+kind: sources
+name: yelp-user-duckdb
+type: duckdb
+database: ${YELP_DUCKDB_PATH:/shared/DataAgentBench/query_yelp/query_dataset/yelp_user.db}
+---
+kind: tools
+name: postgres-list-tables
+type: postgres-list-tables
+source: dab-postgres
+---
+kind: tools
+name: postgres-execute
+type: postgres-execute-sql
+source: dab-postgres
+---
+kind: tools
+name: mongodb-find-businesses
+type: mongodb-find
+source: dab-mongodb
+database: ${YELP_MONGO_DB:yelp_db}
+collection: business
+filterPayload: |
+  {}
+limit: 10
+---
+kind: tools
+name: sqlite-execute-core-crm
+type: sqlite-execute-sql
+source: crmarenapro-core-crm
+---
+kind: tools
+name: duckdb-execute-yelp
+type: duckdb-execute-sql
+source: yelp-user-duckdb
+---
+kind: toolsets
+name: oracle-forge-dab
+tools:
+  - postgres-list-tables
+  - postgres-execute
+  - mongodb-find-businesses
+  - sqlite-execute-core-crm
+  - duckdb-execute-yelp
