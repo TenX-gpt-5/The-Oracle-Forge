@@ -864,6 +864,11 @@ class ExecutionRouter:
         return review_result, review_result.get("result", []), None
 
     def _extract_state_from_description(self, description: str) -> str | None:
+        comma_match = re.search(r",\s*([A-Z]{2})\b", description)
+        if comma_match:
+            candidate = comma_match.group(1)
+            if candidate in self.STATE_ABBREVIATIONS.values():
+                return candidate
         match = re.search(r"\bin [^,]+,\s*([A-Z]{2})\b", description)
         if match:
             return match.group(1)
