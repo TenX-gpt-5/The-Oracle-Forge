@@ -49,3 +49,21 @@ Notes:
 - q2: output `PA, 3.76`; validator reason `Number near 'PA' does not match ≈3.699395770392749`.
 - q3 (`timestamp: 20260413_065351`): validator `is_valid: true`; reason `Found number: 35`.
 - q6 (`timestamp: 20260413_065358`): validator `is_valid: true`; reason `Name and all categories are present.`
+
+## 2026-04-13
+Run type: Compliance refresh rerun + baseline harness artifact
+Command:
+- `python eval/run_initial_baseline.py`
+- `python run_benchmark_query.py --dataset yelp --query-id 2 --validate-answer`
+- `python run_benchmark_query.py --dataset yelp --query-id 3 --validate-answer`
+- `python run_benchmark_query.py --dataset yelp --query-id 6 --validate-answer`
+Dataset scope: held-out baseline (local harness) + `yelp` queries 2, 3, 6 (remote DAB)
+Trials: baseline 3 local trials + 1 per remote query
+Score:
+- baseline harness: `pass_at_1=0.0`, `total_trials=3`, `failure_classes={"extraction_failure": 3}`
+- remote DAB targeted rerun: `2/3` pass (`is_valid: true` for q3 and q6)
+Notes:
+- baseline artifact written to `results/initial_baseline_with_trace.json` and includes query trace payloads per trial.
+- q2 remains the only blocking query (`benchmark_answer=3.76`, expected near `3.699395770392749`).
+- q3 (`timestamp: 20260413_072739`): `is_valid: true`.
+- q6 (`timestamp: 20260413_072745`): `is_valid: true`.

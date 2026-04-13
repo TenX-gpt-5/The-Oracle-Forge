@@ -2,6 +2,39 @@
 
 Production-style data-agent workspace for the Oracle Forge challenge.
 
+## Team And Roles
+
+- Gersum: driver, benchmark execution, remote validation, and submission packaging
+- Team `oracle-forge-gpt5` shared session: architecture review, mob approvals, and integration validation
+
+## Live Agent Access
+
+- Shared server access: `ssh trp-gpt5`
+- Shared tmux socket: `/shared/tmux/oracle-forge.sock`
+- Shared tmux session: `oracle-forge-gpt5`
+- Agent runtime path on server: `/shared/DataAgentBench/oracle_forge_v3`
+
+## Architecture Diagram
+
+- Diagram source docs: [ARCHITECTURE.md](/Users/gersumasfaw/week8_9/ARCHITECTURE.md), [ARCHITECTURE_V2.md](/Users/gersumasfaw/week8_9/ARCHITECTURE_V2.md), [ARCHITECTURE_V3.md](/Users/gersumasfaw/week8_9/ARCHITECTURE_V3.md)
+- Diagram image artifact: [oracle_forge_architecture_v2.png](/Users/gersumasfaw/week8_9/oracle_forge_architecture_v2.png)
+
+## Fresh Machine Setup
+
+```bash
+git clone https://github.com/Gersum/The-Oracle-Forge.git
+cd The-Oracle-Forge
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+Quick smoke command after setup:
+
+```bash
+python run_benchmark_query.py --dataset yelp --query-id 1 --validate-answer
+```
+
 This repo currently includes:
 
 - Oracle Forge architecture docs

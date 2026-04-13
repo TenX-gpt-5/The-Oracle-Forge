@@ -14,3 +14,11 @@ Use this directory for:
 - held-out test sets
 - benchmark notes
 - submission-oriented evaluation outputs
+
+Submission-facing evaluation scripts:
+
+- `eval/run_initial_baseline.py` (runs held-out baseline and writes score + trace artifact)
+
+Expected output artifact:
+
+- `results/initial_baseline_with_trace.json`

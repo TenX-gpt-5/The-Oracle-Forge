@@ -1,0 +1,119 @@
+{
+  "artifact": "trace_diagnostics",
+  "generated_on": "2026-04-13",
+  "source": {
+    "environment": "remote",
+    "host_alias": "trp-gpt5",
+    "repo_path": "/shared/DataAgentBench/oracle_forge_v3",
+    "db_path": ".oracle_forge/oracle_forge_experiences.db",
+    "experience_ids": [16, 17, 18]
+  },
+  "extraction_command": "python -c 'import sqlite3,json; con=sqlite3.connect(\".oracle_forge/oracle_forge_experiences.db\"); cur=con.cursor(); rows=cur.execute(\"SELECT id, question, validation_json, final_answer, trace_json FROM experiences WHERE id IN (16,17,18) ORDER BY id\").fetchall(); ...'",
+  "records": [
+    {
+      "id": 16,
+      "query_label": "q2",
+      "question": "Which U.S. state has the highest number of reviews, and what is the average rating of businesses in that state?",
+      "validation_status": "failed",
+      "failure_class": "benchmark_external_validation_failed",
+      "errors": [
+        "Remote DAB validator rejected answer: Number near 'PA' does not match ~=3.699395770392749"
+      ],
+      "evidence": [
+        "logical_db_names=user_database,businessinfo_database",
+        "benchmark_answer=3.76",
+        "benchmark_reviews=617",
+        "extracted_rows=1",
+        "remote_reason=Number near 'PA' does not match ~=3.699395770392749"
+      ],
+      "final_answer": "I could not produce a fully validated answer. Failure class: benchmark_external_validation_failed. Validation errors: Remote DAB validator rejected answer: Number near 'PA' does not match ~=3.699395770392749",
+      "trace_steps": [
+        "planner::generated_plan",
+        "context_cortex::retrieved_context",
+        "scratchpad_manager::created_scratchpads",
+        "execution_router::executed_plan",
+        "validator::validated_execution",
+        "answer_synthesizer::generated_retry_answer",
+        "benchmark_validator::validated_answer",
+        "validator::validated_remote_benchmark",
+        "repair_loop::prepared_retry",
+        "planner::generated_plan",
+        "context_cortex::retrieved_context",
+        "scratchpad_manager::created_scratchpads",
+        "execution_router::executed_plan",
+        "validator::validated_execution",
+        "answer_synthesizer::generated_retry_answer",
+        "benchmark_validator::validated_answer",
+        "validator::validated_remote_benchmark",
+        "repair_loop::prepared_retry",
+        "planner::generated_plan",
+        "context_cortex::retrieved_context",
+        "scratchpad_manager::created_scratchpads",
+        "execution_router::executed_plan",
+        "validator::validated_execution",
+        "answer_synthesizer::generated_retry_answer",
+        "benchmark_validator::validated_answer",
+        "validator::validated_remote_benchmark",
+        "answer_synthesizer::generated_answer"
+      ]
+    },
+    {
+      "id": 17,
+      "query_label": "q3",
+      "question": "During 2018, how many businesses that received reviews offered either business parking or bike parking?",
+      "validation_status": "passed",
+      "failure_class": "none",
+      "errors": [],
+      "evidence": [
+        "logical_db_names=user_database,businessinfo_database",
+        "benchmark_answer=35",
+        "benchmark_reviews=35",
+        "extracted_rows=1",
+        "remote_validator=Found number: 35"
+      ],
+      "final_answer": "During 2018, the number of businesses that received reviews and offered business or bike parking is 35.",
+      "trace_steps": [
+        "planner::generated_plan",
+        "context_cortex::retrieved_context",
+        "scratchpad_manager::created_scratchpads",
+        "execution_router::executed_plan",
+        "validator::validated_execution",
+        "answer_synthesizer::generated_retry_answer",
+        "benchmark_validator::validated_answer",
+        "answer_synthesizer::generated_answer"
+      ]
+    },
+    {
+      "id": 18,
+      "query_label": "q6",
+      "question": "Which business received the highest average rating between January 1, 2016 and June 30, 2016, and what category does it belong to? Consider only businesses with at least 5 reviews.",
+      "validation_status": "passed",
+      "failure_class": "none",
+      "errors": [],
+      "evidence": [
+        "logical_db_names=user_database,businessinfo_database",
+        "benchmark_answer=Coffee House Too Cafe",
+        "benchmark_reviews=7",
+        "extracted_rows=1",
+        "remote_validator=Name and all categories are present."
+      ],
+      "final_answer": "Coffee House Too Cafe received the highest average rating in that period. Categories: Restaurants, Breakfast & Brunch, American (New), Cafes.",
+      "trace_steps": [
+        "planner::generated_plan",
+        "context_cortex::retrieved_context",
+        "scratchpad_manager::created_scratchpads",
+        "execution_router::executed_plan",
+        "validator::validated_execution",
+        "answer_synthesizer::generated_retry_answer",
+        "benchmark_validator::validated_answer",
+        "answer_synthesizer::generated_answer"
+      ]
+    }
+  ],
+  "summary": {
+    "pass_count": 2,
+    "total": 3,
+    "open_issue": "q2 numeric aggregation mismatch (3.76 vs expected ~3.6994)",
+    "pipeline_health": "trace logging, retries, and remote validation all active"
+  }
+}
