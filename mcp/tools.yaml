@@ -1,0 +1,103 @@
+# Oracle Forge MCP Toolbox starter configuration.
+# This file currently covers the three database types that are wired natively
+# through the verified Toolbox setup in this repo:
+# - PostgreSQL
+# - SQLite
+# - MongoDB
+#
+# DuckDB note:
+# The current Toolbox setup used by this workspace does not expose DuckDB as a
+# native source. Oracle Forge therefore reaches DAB DuckDB datasets through the
+# remote DAB path until native Toolbox support is available and adopted here.
+
+kind: sources
+name: dab-postgres
+type: postgres
+host: ${PG_HOST:127.0.0.1}
+port: ${PG_PORT:5432}
+database: ${PG_DB:test}
+user: ${PG_USER:postgres}
+password: ${PG_PASSWORD}
+---
+kind: sources
+name: dab-mongodb
+type: mongodb
+uri: ${MONGO_URI:mongodb://localhost:27017/}
+---
+kind: sources
+name: crmarenapro-core-crm
+type: sqlite
+database: ${CRM_CORE_SQLITE_PATH:/shared/DataAgentBench/query_crmarenapro/query_dataset/core_crm.db}
+---
+kind: sources
+name: crmarenapro-products-orders
+type: sqlite
+database: ${CRM_PRODUCTS_ORDERS_SQLITE_PATH:/shared/DataAgentBench/query_crmarenapro/query_dataset/products_orders.db}
+---
+kind: sources
+name: crmarenapro-territory
+type: sqlite
+database: ${CRM_TERRITORY_SQLITE_PATH:/shared/DataAgentBench/query_crmarenapro/query_dataset/territory.db}
+---
+kind: tools
+name: postgres-execute
+type: postgres-execute-sql
+source: dab-postgres
+description: Execute parameterized SQL statements against the active DAB PostgreSQL database.
+---
+kind: tools
+name: postgres-list-tables
+type: postgres-list-tables
+source: dab-postgres
+description: List tables in the active DAB PostgreSQL database.
+---
+kind: tools
+name: mongodb-find-businesses
+type: mongodb-find
+source: dab-mongodb
+description: Query Yelp-style business metadata from MongoDB.
+database: ${YELP_MONGO_DB:yelp_db}
+collection: business
+filterPayload: |
+  {}
+limit: 10
+---
+kind: tools
+name: mongodb-find-checkins
+type: mongodb-find
+source: dab-mongodb
+description: Query Yelp-style checkin metadata from MongoDB.
+database: ${YELP_MONGO_DB:yelp_db}
+collection: checkin
+filterPayload: |
+  {}
+limit: 10
+---
+kind: tools
+name: sqlite-execute-core-crm
+type: sqlite-execute-sql
+source: crmarenapro-core-crm
+description: Execute SQL against the crmarenapro core_crm SQLite database.
+---
+kind: tools
+name: sqlite-execute-products-orders
+type: sqlite-execute-sql
+source: crmarenapro-products-orders
+description: Execute SQL against the crmarenapro products_orders SQLite database.
+---
+kind: tools
+name: sqlite-execute-territory
+type: sqlite-execute-sql
+source: crmarenapro-territory
+description: Execute SQL against the crmarenapro territory SQLite database.
+---
+kind: toolsets
+name: oracle-forge-dab
+tools:
+  - postgres-execute
+  - postgres-list-tables
+  - mongodb-find-businesses
+  - mongodb-find-checkins
+  - sqlite-execute-core-crm
+  - sqlite-execute-products-orders
+  - sqlite-execute-territory

@@ -1,0 +1,11 @@
+.env
+.oracle_forge/
+venv/
+__pycache__/
+.pytest_cache/
+sandbox.db
+*.pyc
+*.pyo
+*.log
+node_modules/
+.vscode/
