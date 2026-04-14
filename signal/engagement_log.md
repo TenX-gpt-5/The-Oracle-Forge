@@ -11,8 +11,8 @@ Response: [to be updated]
 Follow-up needed: Tag @ucbepic if they respond
 
 ## 2026-04-14
-Platform: Reddit — r/LocalLLaMA
-Link: [to be added after posting]
+Platform: X
+Link: https://x.com/LidyaDagnew/status/2044044847699329443?s=20
 Topic: Comment on ill-formatted join keys in multi-database AI agents
 Evidence referenced: DAB benchmark, CUST-001 vs integer ID mismatch
 Response: [to be updated]
