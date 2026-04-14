@@ -1,42 +1,5 @@
 # DataAgentBench Join Key Glossary
 
-Here is how customer IDs and canonical entity identifiers appear differently across DAB datasets and database types. The agent must normalize keys before any cross-database join.
-
-**Rule:** Never assume a primary key in an SQL database maps 1:1 without formatting to a NoSQL document ID. Always run `join_key_resolver.validate_overlap()` before joining.
-
----
-
-## Yelp Dataset
-- **PostgreSQL (`transactions.customer_id`):** Integer (e.g., `12345`)
-- **MongoDB (`reviews.customer_id`):** String with `CUST-` prefix (e.g., `"CUST-12345"`)
-- **Resolution:** Strip `CUST-` prefix from MongoDB, or format PostgreSQL integers as `f"CUST-{id}"`. Use `join_key_resolver.normalize()`.
-- **Overlap expected:** ~95% after normalization. If <90%, check for customers in one system but not the other.
-
-## Support Ticket IDs
-- **SQLite (logs):** UUID format (e.g., `"550e8400-e29b-41d4-a716-446655440000"`)
-- **Redshift/DuckDB (analytics):** Truncated hash (e.g., `"550e8400"`)
-- **Resolution:** Truncate UUID to first 8 characters, or expand hash to full UUID via lookup table.
-
-## Healthcare Provider IDs
-- **PostgreSQL (directory):** Zero-padded string (e.g., `"00456"`)
-- **MongoDB (credentialing):** Integer (e.g., `456`) — leading zeros dropped
-- **Resolution:** Force string casting on both sides. Never cast to integer — information loss is irreversible. Use `str(id).zfill(5)` for normalization.
-
-## Phone Numbers (CRM Datasets)
-- **Source A:** Dashed format (e.g., `"123-456-7890"`)
-- **Source B:** E.164 international format (e.g., `"+11234567890"`)
-- **Resolution:** Normalize to E.164 using `join_key_resolver.normalize_key(phone, "phone_dashed", "phone_e164")`.
-
-## Product Codes (Retail Datasets)
-- **PostgreSQL (catalog):** Alphanumeric SKU (e.g., `"SKU-A1234"`)
-- **MongoDB (inventory):** Numeric-only code (e.g., `1234`)
-- **Resolution:** Strip alphabetic prefix, compare numeric portion. Validate overlap before joining.
-
-## User/Account IDs (Finance Datasets)
-- **PostgreSQL (accounts):** Sequential integer (e.g., `10001`)
-- **DuckDB (analytics export):** Hex-encoded hash of the integer (e.g., `"2711"` for `10001`)
-- **Resolution:** Convert hex to decimal or decimal to hex before comparison. Validate with sample checks.
-
 # Join Keys
 
 Oracle Forge should assume that shared business or customer identity may be represented differently across databases even when the entities are logically the same.
@@ -49,12 +12,8 @@ The strongest verified example in the current repo is the Yelp path:
 Those values do not match directly. Oracle Forge must normalize them before joining or filtering across sources. In the current implementation, the working Yelp strategy converts `businessid_*` to `businessref_*` before running the DuckDB aggregation.
 
 The general rule for Oracle Forge is:
-
 - never assume raw identifiers align across systems
 - inspect format before joining
-- document reusable mappings in this KB
-
-This should expand over time into a dataset-by-dataset glossary of join-key transformations.
 
 ---
 name: Ill-formatted join keys glossary
@@ -66,7 +25,7 @@ source: DataAgentBench-main/query_*/db_description{,_withhint}.txt; DAB paper §
 
 # Ill-formatted join keys
 
-DAB's second hard requirement: the "same" entity carries different string formats across DBMSes. Joining naïvely returns zero rows. The agent must detect the mismatch and normalise **before** the join.
+The "same" entity carries different string formats across DBMSes. Joining naïvely returns zero rows. The agent must detect the mismatch and normalise **before** the join.
 
 Difficulty taxonomy (used throughout):
 - **clean** — same field name, same format; joining just works. Documented for completeness.
@@ -331,19 +290,14 @@ Difficulty taxonomy (used throughout):
 
 ## Injection test
 
-**Question 1:** "How is CustomerID formatted in the Yelp PostgreSQL database versus the MongoDB reviews collection?"
-**Expected:** "PostgreSQL stores customer IDs as integers (e.g., 12345). MongoDB stores them as strings with CUST- prefix (e.g., 'CUST-12345'). Strip CUST- or format integer to match."
-**Result:** PASS
-**Date:** 2026-04-11
-
-**Question 2:**
+**Question 1:**
 How does Oracle Forge reconcile Yelp business identity across MongoDB and DuckDB in the current verified path?
 Expected answer:
 It maps MongoDB `business_id` values from the `businessid_*` format to DuckDB `business_ref` values in the `businessref_*` format before aggregation.
 Status: pass
 Last verified: 2026-04-11
 
-**Question 3:** "In the crmarenapro dataset, what two kinds of corruption affect ID/text fields, and what is the mandatory pre-join normalization?"
+**Question 2:** "In the crmarenapro dataset, what two kinds of corruption affect ID/text fields, and what is the mandatory pre-join normalization?"
 
 ### Expected Answer: 
 ~25% have leading `#`, ~20% have trailing whitespace; before every join, apply `strip('#').strip()` (or SQL `RTRIM(LTRIM(col, '#'))`) on both sides. Applies to `Id`, `AccountId`, `ContactId`, `Name`, `FirstName`, `LastName`, `Email`, `Subject`, `Status`.

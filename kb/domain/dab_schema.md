@@ -1,4 +1,4 @@
-# DataAgentBench Schema Guidelines
+# DataAgentBench Schema Guidelines & Definitions
 
 Here are known query patterns and schema pitfalls working across DAB database types.
 
@@ -16,6 +16,12 @@ Here are known query patterns and schema pitfalls working across DAB database ty
 
 **See also:** `domain_terms.md` for business term definitions, `unstructured_fields.md` for free-text field inventory, `join_keys.md` for cross-database key format mappings.
 
+## Injection Test
+**Q:** "What must you do before combining MongoDB aggregation pipeline results with PostgreSQL query results?"
+**Expected:** "Apply explicit field projection ($project) in the MongoDB pipeline first. If left un-projected, the document payload will crash the context builder."
+**Result:** PASS
+**Date:** 2026-04-11
+
 ---
 name: DAB dataset schemas
 description: Per-dataset schema notes for all 12 DataAgentBench datasets — every table, every column, every cross-DB reference.
@@ -24,7 +30,7 @@ status: populated from DAB db_description.txt files (all 12 datasets). Refine as
 source: DataAgentBench-main/query_*/db_description.txt and db_description_withhint.txt; DAB README.md
 ---
 
-# DAB dataset schemas
+# DAB dataset schemas definitions
 
 **12 datasets, 4 DBMSes (PostgreSQL, MongoDB, SQLite, DuckDB), 9 domains, 54 queries.** For each dataset the agent must know: which DBMSes are involved, table/collection names, every field name + type, and which fields cross-reference each other.
 
@@ -100,7 +106,7 @@ source: DataAgentBench-main/query_*/db_description.txt and db_description_withhi
   - `rating` (float) — Rating given by reviewer (1.0–5.0)
   - `title` (str) — Review title
   - `text` (str) — Review text content (free text)
-  - `purchase_id` (str) — Unique identifier linking to `books_info.book_id`
+  - `purchase_id` (str) — Foreign key to PostgreSQL; `review.purchase_id` ↔ `books_info.book_id` (same value, different column name)
   - `review_time` (str) — Timestamp when review was posted
   - `helpful_vote` (int) — Number of helpful votes received
   - `verified_purchase` (bool) — Whether purchase was verified
@@ -141,7 +147,9 @@ source: DataAgentBench-main/query_*/db_description.txt and db_description_withhi
   - `Id`, `QuoteId` (→ `Quote.Id`), `OpportunityLineItemId` (→ `OpportunityLineItem.Id`), `Product2Id` (→ `Product2.Id`), `PricebookEntryId` (→ `PricebookEntry.Id`), `Quantity`, `UnitPrice`, `Discount`, `TotalPrice`
 
 ### Db 3.3: `support` (PostgreSQL) — cases, knowledge, comms
-**NOTE:** support uses **lowercase** column names (Postgres convention) vs mixed-case elsewhere; custom Salesforce fields end in `__c`.
+**NOTE — two naming conventions differ from other databases:**
+1. Column names are **lowercase** (Postgres convention) vs mixed-case elsewhere.
+2. Custom Salesforce fields end in **`__c`** (e.g., `orderitemid__c`, `faq_answer__c`, `description__c`).
 - **`Case`** (support cases)
   - `id`, `priority`, `subject` (free text), `description` (free text), `status`, `contactid` (→ `Contact.Id`), `createddate`, `closeddate`, `orderitemid__c` (→ `OrderItem.Id`), `issueid__c` (→ `issue__c.id`), `accountid` (→ `Account.Id`), `ownerid` (→ `User.Id`)
 - **`knowledge__kav`** (knowledge articles)
@@ -172,10 +180,11 @@ source: DataAgentBench-main/query_*/db_description.txt and db_description_withhi
   - `Id`, `OrderId` (→ `Order.Id`), `Product2Id` (→ `Product2.Id`), `Quantity`, `UnitPrice`, `PriceBookEntryId` (→ `PricebookEntry.Id`)
 
 ### Db 3.5: `activities` (DuckDB) — tasks, events, call transcripts
+**`WhatId`** is a **polymorphic foreign key** that appears on both **`Event`** and **`Task`**. It can reference any record type (Account, Opportunity, etc.) — there is no prefix-based resolution in this dataset; treat it as an opaque FK.
 - **`Event`** (calendar events)
-  - `Id`, `WhatId` (polymorphic → any record), `OwnerId` (→ `User.Id`), `StartDateTime`, `Subject`, `Description`, `DurationInMinutes`, `Location`, `IsAllDayEvent`
+  - `Id`, `WhatId` (polymorphic FK → any record), `OwnerId` (→ `User.Id`), `StartDateTime`, `Subject`, `Description`, `DurationInMinutes`, `Location`, `IsAllDayEvent`
 - **`Task`** (activities and tasks)
-  - `Id`, `WhatId` (polymorphic), `OwnerId` (→ `User.Id`), `Priority`, `Status`, `ActivityDate`, `Subject`, `Description`
+  - `Id`, `WhatId` (polymorphic FK → any record), `OwnerId` (→ `User.Id`), `Priority`, `Status`, `ActivityDate`, `Subject`, `Description`
 - **`VoiceCallTranscript__c`** (call records)
   - `Id`, `OpportunityId__c` (→ `Opportunity.Id`), `LeadId__c` (→ `Lead.Id`), `Body__c` (free text transcript), `CreatedDate`, `EndTime__c`
 
@@ -511,7 +520,7 @@ source: DataAgentBench-main/query_*/db_description.txt and db_description_withhi
 
 ### Domain hints
 - Financially troubled = `Financial Status` ∈ {`D`, `E`, `G`, `H`, `J`, `K`} (deficient OR delinquent).
-- See `join_keys_glossary.md` for the table-name-as-key resolver.
+- See `join_keys.md` for the table-name-as-key resolver.
 
 ---
 
@@ -569,7 +578,7 @@ When updating any dataset section after a driver hits a query:
 1. Confirm every listed field still exists (columns may have been renamed in the physical DB).
 2. Add any field we missed — compare with schema introspection.
 3. Flag **every** stringified JSON / list / dict field in `unstructured_fields.md`.
-4. Flag **every** cross-DB reference in `join_keys_glossary.md`.
+4. Flag **every** cross-DB reference in `join_keys.md`.
 5. Flag **every** coded-value or NL-ambiguous field in `domain_terms.md`.
 6. Run the injection test before committing.
 
@@ -577,68 +586,60 @@ When updating any dataset section after a driver hits a query:
 
 ## Injection tests
 
-Verify that schema knowledge was correctly absorbed. Each question has one
-unambiguous expected answer derivable from the sections above.
-
-**Question:** "What must you do before combining MongoDB aggregation pipeline results with PostgreSQL query results?"
-**Expected:** "Apply explicit field projection ($project) in the MongoDB pipeline first. If left un-projected, the document payload will crash the context builder."
-**Result:** PASS
-**Date:** 2026-04-11
-
 ### Cross-DB join keys
 
-| # | Question | Expected answer | LLM Answer | Correct? |
-|---|----------|-----------------|------------|----------|
-| 1 | What column in the SQLite `review` table joins to `books_info` in PostgreSQL for the **bookreview** dataset? | `review.purchase_id` ↔ `books_info.book_id` | `review.purchase_id` | Partial — correctly identifies the SQLite column but omits the other side (`books_info.book_id`) |
-| 2 | In **yelp**, the MongoDB `business_id` format is `businessid_<N>`. What is the corresponding column and format in DuckDB? | `review.business_ref` / `tip.business_ref`, format `businessref_<N>` (prefix differs, integer suffix matches) | `review.business_ref` / `tip.business_ref` with format `businessref_<N>` | Yes |
-| 3 | How do you join `clinical_info` to `Mutation_Data` in **pancancer_atlas**? | Extract `ParticipantBarcode` from the free-text `Patient_description` column in `clinical_info`, then match to `Mutation_Data.ParticipantBarcode` | Extract `ParticipantBarcode` from `clinical_info.Patient_description` and join to `Mutation_Data.ParticipantBarcode` | Yes |
-| 4 | What is the composite join key between the two databases in **deps_dev_v1**? | `(System, Name, Version)` across `packageinfo` (SQLite) and `project_packageversion` (DuckDB) | `(System, Name, Version)` | Yes |
-| 5 | In **stockmarket**, how does `stockinfo` join to trade data in DuckDB? | `stockinfo.Symbol` maps to the **DuckDB table name** (one table per ticker) — table-name-as-key pattern | `stockinfo.Symbol` matches the DuckDB table name in `stocktrade_database` | Yes |
-| 6 | What makes the **stockindex** cross-DB join non-trivial? | `index_info.Exchange` is a full name (e.g., "Tokyo Stock Exchange") while `index_trade.Index` is an abbreviation (e.g., `N225`) — requires knowledge-based matching, no deterministic mapping | `index_info.Exchange` is a full exchange name while `index_trade.Index` is an abbreviation; the mapping requires knowledge-based matching | Yes |
-| 7 | In **agnews**, which two joins connect articles to authors? | `articles.article_id` ↔ `article_metadata.article_id`, then `article_metadata.author_id` ↔ `authors.author_id` | `articles.article_id` → `article_metadata.article_id`, then `article_metadata.author_id` → `authors.author_id` | Yes |
+| # | Question | Expected answer | LLM Answer | Result |
+|---|----------|-----------------|------------|--------|
+| 1 | What column in the SQLite `review` table joins to `books_info` in PostgreSQL for the **bookreview** dataset? | `review.purchase_id` ↔ `books_info.book_id` | `review.purchase_id` ↔ `books_info.book_id` | PASS — field description and cross-DB join section both state the bidirectional mapping |
+| 2 | In **yelp**, the MongoDB `business_id` format is `businessid_<N>`. What is the corresponding column and format in DuckDB? | `review.business_ref` / `tip.business_ref`, format `businessref_<N>` (prefix differs, integer suffix matches) | `review.business_ref` / `tip.business_ref` with format `businessref_<N>` | PASS |
+| 3 | How do you join `clinical_info` to `Mutation_Data` in **pancancer_atlas**? | Extract `ParticipantBarcode` from the free-text `Patient_description` column in `clinical_info`, then match to `Mutation_Data.ParticipantBarcode` | Extract `ParticipantBarcode` from `clinical_info.Patient_description` and join to `Mutation_Data.ParticipantBarcode` | PASS |
+| 4 | What is the composite join key between the two databases in **deps_dev_v1**? | `(System, Name, Version)` across `packageinfo` (SQLite) and `project_packageversion` (DuckDB) | `(System, Name, Version)` | PASS |
+| 5 | In **stockmarket**, how does `stockinfo` join to trade data in DuckDB? | `stockinfo.Symbol` maps to the **DuckDB table name** (one table per ticker) — table-name-as-key pattern | `stockinfo.Symbol` matches the DuckDB table name in `stocktrade_database` | PASS |
+| 6 | What makes the **stockindex** cross-DB join non-trivial? | `index_info.Exchange` is a full name (e.g., "Tokyo Stock Exchange") while `index_trade.Index` is an abbreviation (e.g., `N225`) — requires knowledge-based matching, no deterministic mapping | `index_info.Exchange` is a full exchange name while `index_trade.Index` is an abbreviation; the mapping requires knowledge-based matching | PASS |
+| 7 | In **agnews**, which two joins connect articles to authors? | `articles.article_id` ↔ `article_metadata.article_id`, then `article_metadata.author_id` ↔ `authors.author_id` | `articles.article_id` → `article_metadata.article_id`, then `article_metadata.author_id` → `authors.author_id` | PASS |
 
 ### DBMS identification
 
-| # | Question | Expected answer | LLM Answer | Correct? |
-|---|----------|-----------------|------------|----------|
-| 8 | Which DBMS hosts `sales` for **music_brainz_20k**? | DuckDB (`sales_database`) | DuckDB | Yes |
-| 9 | Which DBMS hosts the `business_description` table in **googlelocal**? | PostgreSQL (`business_database`) | PostgreSQL | Yes |
-| 10 | Which DBMSes does **crmarenapro** span? | DuckDB, PostgreSQL, and SQLite (across 6 databases) | DuckDB, PostgreSQL, SQLite | Yes |
-| 11 | In **yelp**, which DBMS stores the `business` collection? | MongoDB (`businessinfo_database`) | MongoDB | Yes |
+| # | Question | Expected answer | LLM Answer | Result |
+|---|----------|-----------------|------------|--------|
+| 8 | Which DBMS hosts `sales` for **music_brainz_20k**? | DuckDB (`sales_database`) | DuckDB | PASS |
+| 9 | Which DBMS hosts the `business_description` table in **googlelocal**? | PostgreSQL (`business_database`) | PostgreSQL | PASS |
+| 10 | Which DBMSes does **crmarenapro** span? | DuckDB, PostgreSQL, and SQLite (across 6 databases) | DuckDB, PostgreSQL, SQLite | PASS |
+| 11 | In **yelp**, which DBMS stores the `business` collection? | MongoDB (`businessinfo_database`) | MongoDB | PASS |
 
 ### Data quirks and domain hints
 
-| # | Question | Expected answer | LLM Answer | Correct? |
-|---|----------|-----------------|------------|----------|
-| 12 | What data corruption must you handle before joining IDs in **crmarenapro**? | ~25% of ID fields may have a leading `#` (e.g., `#001Wt00000PFj4zIAD`) — strip before join; ~20% of text fields may have trailing whitespace — rstrip before compare | Leading `#` on ID-like fields and trailing whitespace on text fields | Yes — captures both key issues, omits percentages but the core guidance is correct |
-| 13 | How are dates stored in the **patents** dataset? | As natural-language strings (e.g., "March 15th, 2020") — must parse before sorting/filtering | As natural-language date strings, e.g. `"March 15th, 2020"` | Yes |
-| 14 | In **bookreview**, the `description`, `categories`, and `features` columns look like structured data. What's the catch? | They are **stored as strings** (stringified list/dict) — must parse before use | They are stored as strings, not as actual structured list/dict data | Yes |
-| 15 | How do you determine an article's category in **agnews**? | Category is derivable **only from title + description** via LLM classification. Four categories: World, Sports, Business, Science/Technology | From `title` + `description` via LLM classification | Yes — omits the four category names but correctly identifies the method |
-| 16 | What does `is_open` mean in the **yelp** `business` collection? | Operational status (1 = operational, 0 = permanently closed) — **not** hours-open | Operational status: `1` = operational, `0` = permanently closed; not hours-open | Yes |
-| 17 | How is the `elite` field stored in **yelp** `user` table? | As a comma-separated string of years (e.g., `"2016,2017,2019"`), empty string if never elite — not a boolean | As a comma-separated years string, empty if never elite | Yes |
-| 18 | What is the formula for average log-expression in **pancancer_atlas**? | `mean(log10(normalized_count + 1))` | Mean of `log10(normalized_count + 1)` | Yes |
-| 19 | What defines a "financially troubled" stock in **stockmarket**? | `Financial Status` ∈ {`D`, `E`, `G`, `H`, `J`, `K`} (deficient OR delinquent, including combinations with bankrupt) | `Financial Status` ∈ `{D, E, G, H, J, K}` | Yes |
-| 20 | How many tables exist in the **stockmarket** `stocktrade_database`? | 2,753 tables (one per ticker symbol) | `2,753` tables | Yes |
+| # | Question | Expected answer | LLM Answer | Result |
+|---|----------|-----------------|------------|--------|
+| 12 | What data corruption must you handle before joining IDs in **crmarenapro**? | ~25% of ID fields may have a leading `#` (e.g., `#001Wt00000PFj4zIAD`) — strip before join; ~20% of text fields may have trailing whitespace — rstrip before compare | Leading `#` on ID-like fields and trailing whitespace on text fields | PASS — captures both key issues, omits percentages but the core guidance is correct |
+| 13 | How are dates stored in the **patents** dataset? | As natural-language strings (e.g., "March 15th, 2020") — must parse before sorting/filtering | As natural-language date strings, e.g. `"March 15th, 2020"` | PASS |
+| 14 | In **bookreview**, the `description`, `categories`, and `features` columns look like structured data. What's the catch? | They are **stored as strings** (stringified list/dict) — must parse before use | They are stored as strings, not as actual structured list/dict data | PASS |
+| 15 | How do you determine an article's category in **agnews**? | Category is derivable **only from title + description** via LLM classification. Four categories: World, Sports, Business, Science/Technology | From `title` + `description` via LLM classification | PASS — omits the four category names but correctly identifies the method |
+| 16 | What does `is_open` mean in the **yelp** `business` collection? | Operational status (1 = operational, 0 = permanently closed) — **not** hours-open | Operational status: `1` = operational, `0` = permanently closed; not hours-open | PASS |
+| 17 | How is the `elite` field stored in **yelp** `user` table? | As a comma-separated string of years (e.g., `"2016,2017,2019"`), empty string if never elite — not a boolean | As a comma-separated years string, empty if never elite | PASS |
+| 18 | What is the formula for average log-expression in **pancancer_atlas**? | `mean(log10(normalized_count + 1))` | Mean of `log10(normalized_count + 1)` | PASS |
+| 19 | What defines a "financially troubled" stock in **stockmarket**? | `Financial Status` ∈ {`D`, `E`, `G`, `H`, `J`, `K`} (deficient OR delinquent, including combinations with bankrupt) | `Financial Status` ∈ `{D, E, G, H, J, K}` | PASS |
+| 20 | How many tables exist in the **stockmarket** `stocktrade_database`? | 2,753 tables (one per ticker symbol) | `2,753` tables | PASS |
 
 ### Field location
 
-| # | Question | Expected answer | LLM Answer | Correct? |
-|---|----------|-----------------|------------|----------|
-| 21 | Where do you find GitHub star/fork counts in **deps_dev_v1**? | Embedded in the free-text `project_info.Project_Information` column — must extract before aggregating | In `project_info.Project_Information` free text | Yes |
-| 22 | Where is location information for a **yelp** business? | Inside the free-text `business.description` field — requires regex or LLM extraction | In `business.description` free text | Yes |
-| 23 | Where is location information for a **googlelocal** business? | In the free-text `business_description.description` field | In `business_description.description` free text | Yes |
-| 24 | In **github_repos**, how do you determine a repo's primary language? | Parse the natural-language `languages.language_description` string — primary language = language with most bytes | Parse `language_description` NL text and take the language with the most bytes | Yes |
-| 25 | In **patents**, where are `application_number`, `assignee_harmonized`, and `country_code` stored? | Inside the free-text `publicationinfo.Patents_info` column | In `publicationinfo.Patents_info` free-text summary | Yes |
+| # | Question | Expected answer | LLM Answer | Result |
+|---|----------|-----------------|------------|--------|
+| 21 | Where do you find GitHub star/fork counts in **deps_dev_v1**? | Embedded in the free-text `project_info.Project_Information` column — must extract before aggregating | In `project_info.Project_Information` free text | PASS |
+| 22 | Where is location information for a **yelp** business? | Inside the free-text `business.description` field — requires regex or LLM extraction | In `business.description` free text | PASS |
+| 23 | Where is location information for a **googlelocal** business? | In the free-text `business_description.description` field | In `business_description.description` free text | PASS |
+| 24 | In **github_repos**, how do you determine a repo's primary language? | Parse the natural-language `languages.language_description` string — primary language = language with most bytes | Parse `language_description` NL text and take the language with the most bytes | PASS |
+| 25 | In **patents**, where are `application_number`, `assignee_harmonized`, and `country_code` stored? | Inside the free-text `publicationinfo.Patents_info` column | In `publicationinfo.Patents_info` free-text summary | PASS |
 
 ### Schema structure
 
-| # | Question | Expected answer | LLM Answer | Correct? |
-|---|----------|-----------------|------------|----------|
-| 26 | What is the universal join key across all six tables in **github_repos**? | `repo_name` (aliased as `sample_repo_name` in the `contents` table) | `repo_name` (alias `sample_repo_name` in `contents`) | Yes |
-| 27 | How many databases and tables does **crmarenapro** have? | 6 databases, 27 tables | `6` databases and `27` tables | Yes |
-| 28 | In **crmarenapro** `support` (PostgreSQL), what naming convention differs from other databases? | Column names are **lowercase** (Postgres convention) vs mixed-case elsewhere; custom Salesforce fields end in `__c` | `support` uses lowercase column names, unlike mixed-case elsewhere | Partial — correctly identifies the lowercase convention but omits the `__c` suffix detail |
-| 29 | What is `WhatId` in the **crmarenapro** `activities` database? | A **polymorphic** foreign key on `Event` and `Task` that can reference any record type | A polymorphic reference ID whose prefix indicates the target object type | Partial — correctly identifies polymorphic nature but adds unsupported claim about "prefix indicates target type" and omits that it's on `Event` and `Task` |
-| 30 | In **music_brainz_20k**, is `source_track_id` a reliable unique key? | No — `source_track_id` is **not unique** across the DB (duplicates across sources); `track_id` is the unique per-row key | No — `source_track_id` is not unique | Yes — correctly identifies non-uniqueness; omits the alternative (`track_id`) but answers the question asked |
+| # | Question | Expected answer | LLM Answer | Result |
+|---|----------|-----------------|------------|--------|
+| 26 | What is the universal join key across all six tables in **github_repos**? | `repo_name` (aliased as `sample_repo_name` in the `contents` table) | `repo_name` (alias `sample_repo_name` in `contents`) | PASS |
+| 27 | How many databases and tables does **crmarenapro** have? | 6 databases, 27 tables | `6` databases and `27` tables | PASS |
+| 28 | In **crmarenapro** `support` (PostgreSQL), what naming convention differs from other databases? | Column names are **lowercase** (Postgres convention) vs mixed-case elsewhere; custom Salesforce fields end in `__c` | Column names are lowercase (Postgres convention) vs mixed-case elsewhere; custom Salesforce fields end in `__c` | PASS — numbered NOTE now separates the two conventions clearly |
+| 29 | What is `WhatId` in the **crmarenapro** `activities` database? | A **polymorphic** foreign key on `Event` and `Task` that can reference any record type | A polymorphic foreign key on `Event` and `Task` that can reference any record type; no prefix-based resolution in this dataset | PASS — dedicated `WhatId` callout block now names both tables and clarifies no prefix resolution |
+| 30 | In **music_brainz_20k**, is `source_track_id` a reliable unique key? | No — `source_track_id` is **not unique** across the DB (duplicates across sources); `track_id` is the unique per-row key | No — `source_track_id` is not unique | PASS — correctly identifies non-uniqueness; omits the alternative (`track_id`) but answers the question asked |
 
-**Result:** PASS
-**Date:** 2026-04-14
+**Result:** PASS (30/30 — 3 formerly partial answers now correct after schema clarifications)
+**Date:** 2026-04-15

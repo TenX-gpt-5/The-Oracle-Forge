@@ -1,32 +1,8 @@
 # DataAgentBench Domain Term Definitions
 
-Here are the authoritative definitions for business terms used in DAB queries. The agent must use these definitions, not guess from schema.
+# Domain terms glossary
 
-**Active Customer:** A customer who has completed at least one purchase within the last 90 days. Do NOT use row existence in the user table as a proxy. Check `orders.order_date >= NOW() - INTERVAL '90 days'`.
-
-**Churn:** A customer who has either (a) explicitly cancelled via a cancellation event, or (b) had zero activity for >180 days. Definition varies by dataset — always check the dataset-specific override. Never guess.
-
-**Repeat Customer:** A customer with more than one purchase in a 90-day window. Not the same as "returning customer" (which may use a different time window per dataset).
-
-**Repeat Purchase Rate:** Count of repeat customers / count of total customers in the period. Express as a percentage.
-
-**MRR (Monthly Recurring Revenue):** Gross recurring subscription revenue for the month MINUS refunds MINUS credits. Never sum gross revenue alone. Check for `refunds` and `credits` columns in the revenue table.
-
-**Net Revenue:** Gross revenue − refunds − discounts − chargebacks. If any of these columns exist in the table, they must be subtracted.
-
-**Fiscal Year:** Not calendar year. Varies by dataset: retail datasets often use Feb 1 – Jan 31; healthcare may use Oct 1 – Sep 30. Check `kb/domain/dab_schema.md` for dataset-specific boundaries. If unknown, flag as ambiguous — do not default to calendar year.
-
-**Retention Rate:** (Customers active at start of period who are still active at end) / (customers active at start of period). Requires defining "active" using the Active Customer definition above.
-
-**Status Codes:** Meaning is dataset-specific. Common examples:
-- Retail: `status=1` (pending), `status=2` (shipped), `status=3` (delivered), `status=4` (returned)
-- Healthcare: `status=1` (admitted), `status=2` (in treatment), `status=3` (discharged), `status=4` (deceased)
-- Telecom: `status=A` (active), `status=S` (suspended), `status=C` (cancelled)
-Never interpret status codes without checking the dataset's status mapping.
-
-**Cart Abandonment:** A session where items were added to cart but no checkout event occurred within the session. Requires joining cart events with checkout events by session ID.
-
-**Customer Lifetime Value (CLV):** Sum of all revenue from a customer across their entire history. Often requires aggregating across multiple tables and database types.
+Answering correctly requires knowledge that is **not in the schema** which could be industry terminology, fiscal calendar conventions, status-code meanings, Salesforce ID-prefix semantics, etc. This file is the institutional-knowledge layer (OpenAI layer 4).
 
 ---
 name: Domain terms glossary
@@ -35,10 +11,6 @@ type: domain
 status: populated from DAB db_description_withhint.txt across all 12 datasets. Refine as Drivers expose ambiguity.
 source: DataAgentBench-main/query_*/db_description{,_withhint}.txt; Challenge Brief §DAB's four hard requirements; DAB paper §failure mode taxonomy
 ---
-
-# Domain terms glossary
-
-DAB's fourth hard requirement: answering correctly requires knowledge **not in the schema** — industry terminology, fiscal calendar conventions, status-code meanings, Salesforce ID-prefix semantics, etc. This file is the institutional-knowledge layer (OpenAI layer 4).
 
 ## Entry format
 
@@ -57,7 +29,7 @@ DAB's fourth hard requirement: answering correctly requires knowledge **not in t
 
 ### active customer (global / crmarenapro / bookreview / yelp)
 - Naïve interpretation: any row exists in a customer-like table.
-- Correct definition: purchased in the last 90 days (per Challenge Brief example). **Confirm per-dataset** — do not assume 90 days everywhere.
+- Correct definition: fallback to a customer who has completed at least one purchase within the last 90 days. Do NOT use row existence in the user table as a proxy. Check `orders.order_date >= NOW() - INTERVAL '90 days'`. **Confirm per-dataset** — do not assume 90 days everywhere.
 - Why it differs: row-existence is a proxy; real business definition requires an activity window.
 - Source: Challenge Brief §Domain knowledge.
 - Affects queries: any filter on "active" / "current" customers.
@@ -327,7 +299,7 @@ DAB's fourth hard requirement: answering correctly requires knowledge **not in t
 - Correct definition: **distinct** Nasdaq classifications. Keep distinct in group-by.
 
 ### per-ticker trade tables (stockmarket.stocktrade_database)
-- 2,753 tables, one per ticker. Table name = ticker. See `join_keys_glossary.md` for the dynamic-SQL resolver.
+- 2,753 tables, one per ticker. Table name = ticker. See `join_keys.md` for the dynamic-SQL resolver.
 
 ---
 
@@ -349,7 +321,7 @@ DAB's fourth hard requirement: answering correctly requires knowledge **not in t
 - Source: yelp db_description_withhint.txt.
 
 ### businessid prefix (yelp.business.business_id vs yelp.review/tip.business_ref)
-- Same entity, different string prefixes (`businessid_` vs `businessref_`) — see `join_keys_glossary.md`.
+- Same entity, different string prefixes (`businessid_` vs `businessref_`) — see `join_keys.md`.
 
 ### review vs tip (yelp.review / yelp.tip)
 - A **review** has a rating and long text; a **tip** has no rating, short text, and optional `compliment_count`. They are semantically different — do not union naïvely.
