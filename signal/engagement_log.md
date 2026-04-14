@@ -42,3 +42,11 @@ Topic: The Best AI Model Only Scores 38% on a Data Benchmark.
        Here's Why That Number Changed How I Think About AI.
 Response: [to be updated]
 Follow-up needed: Monitor for comments and reactions
+
+## 2026-04-14
+Platform: Slack (internal)
+Link: #oracle-forge-gpt5
+Topic: Daily update — MCP config changed from file-based 
+       to live DB connections, data seeding completed
+Response: Internal only
+Follow-up needed: Gersum to fix db permissions
