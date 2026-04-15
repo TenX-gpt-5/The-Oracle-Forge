@@ -4,7 +4,14 @@ Production-style data-agent workspace for the Oracle Forge challenge.
 
 ## Team And Roles
 
-- Gersum: driver, benchmark execution, remote validation, and submission packaging
+| Name | Role |
+|------|------|
+| Eyobed Feleke | Driver |
+| Gersum Asfaw | Driver |
+| Samuel | Intelligence Officer |
+| Kidane | Intelligence Officer |
+| Bethelhem Abay | Signal Corps |
+| Lidya Dagnew | Signal Corps |
 - Team `oracle-forge-gpt5` shared session: architecture review, mob approvals, and integration validation
 
 ## Live Agent Access
