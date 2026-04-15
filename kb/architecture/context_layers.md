@@ -1,5 +1,9 @@
 # Context Layers
 
+**Injection Test Evidence:**
+*   **Test Query:** "Why do we separate context into layers instead of one big prompt?"
+*   **Expected Answer:** "To prevent context failures disguised as reasoning failures by loading only minimum useful context instead of dumping the whole KB."
+
 Oracle Forge uses layered context because DAB failures are often context failures disguised as reasoning failures.
 
 The current architecture separates context into reusable layers:

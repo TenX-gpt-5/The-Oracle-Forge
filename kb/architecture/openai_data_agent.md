@@ -1,5 +1,9 @@
 # OpenAI Data Agent Context Architecture
 
+**Injection Test Evidence:**
+*   **Test Query:** "What are the six layers of offline enrichment used by OpenAI?"
+*   **Expected Answer:** "The agent must list Schema Rules, Column Stats, ER Graphs, Join Key Anomalies, Target Metrics, and Prior Session Repairs."
+
 Here is how OpenAI structures context for enterprise data agents. Context is the primary bottleneck, not SQL reasoning.
 
 **Six-Layer Context Design (Offline Enrichment):**

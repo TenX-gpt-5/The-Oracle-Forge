@@ -1,4 +1,11 @@
-"""Reusable key-normalization utilities used by cross-source joins."""
+"""
+Reusable key-normalization utilities used by cross-source joins.
+
+# Usage Example:
+#   from utils.key_normalization import yelp_business_id_to_ref
+#   ref = yelp_business_id_to_ref("businessid_123")
+#   print(ref) # Returns "businessref_123"
+"""
 
 from __future__ import annotations
 

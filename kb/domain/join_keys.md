@@ -1,5 +1,9 @@
 # DataAgentBench Join Key Glossary
 
+**Injection Test Evidence:**
+*   **Test Query:** "Join Yelp ratings to the primary DuckDB metrics table."
+*   **Expected Answer:** "Agent must normalize `businessid_X` to `businessref_X` before joining, returning a valid float rating rather than a 0-row empty result."
+
 # Join Keys
 
 Oracle Forge should assume that shared business or customer identity may be represented differently across databases even when the entities are logically the same.

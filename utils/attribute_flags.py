@@ -1,4 +1,11 @@
-"""Reusable attribute parsing helpers for Yelp-like metadata flags."""
+"""
+Reusable attribute parsing helpers for Yelp-like metadata flags.
+
+# Usage Example:
+#   from utils.attribute_flags import is_truthy
+#   flag = is_truthy("u'no'")
+#   print(flag) # Returns False
+"""
 
 from __future__ import annotations
 

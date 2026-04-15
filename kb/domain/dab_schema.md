@@ -1,5 +1,9 @@
 # DataAgentBench Schema Guidelines & Definitions
 
+**Injection Test Evidence:**
+*   **Test Query:** "What must you do before combining MongoDB aggregation pipeline results with PostgreSQL query results?"
+*   **Expected Answer:** "You must require explicit field projection (`$project`) before combining."
+
 Here are known query patterns and schema pitfalls working across DAB database types.
 
 **Query Patterns That Work:**
@@ -15,9 +19,6 @@ Here are known query patterns and schema pitfalls working across DAB database ty
 - Always check column types match expectations — a `customer_id` column may be INTEGER in one table and TEXT in another within the same database.
 
 **See also:** `domain_terms.md` for business term definitions, `unstructured_fields.md` for free-text field inventory, `join_keys.md` for cross-database key format mappings.
-
-## Injection Test
-**Q:** "What must you do before combining MongoDB aggregation pipeline results with PostgreSQL query results?"
 **Expected:** "Apply explicit field projection ($project) in the MongoDB pipeline first. If left un-projected, the document payload will crash the context builder."
 **Result:** PASS
 **Date:** 2026-04-11

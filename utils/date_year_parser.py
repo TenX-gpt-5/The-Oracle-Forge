@@ -1,4 +1,11 @@
-"""Reusable year extraction helpers for mixed-format date text."""
+"""
+Reusable year extraction helpers for mixed-format date text.
+
+# Usage Example:
+#   from utils.date_year_parser import extract_year
+#   year = extract_year("Founded in 2021.")
+#   print(year) # Returns 2021
+"""
 
 from __future__ import annotations
 

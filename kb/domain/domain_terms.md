@@ -1,5 +1,9 @@
 # DataAgentBench Domain Term Definitions
 
+**Injection Test Evidence:**
+*   **Test Query:** "Calculate the churn rate for top-tier Yelp customers."
+*   **Expected Answer:** "Agent must reference the explicit business logic calculation rule for 'churn rate' before generating the SQL query."
+
 # Domain terms glossary
 
 Answering correctly requires knowledge that is **not in the schema** which could be industry terminology, fiscal calendar conventions, status-code meanings, Salesforce ID-prefix semantics, etc. This file is the institutional-knowledge layer (OpenAI layer 4).

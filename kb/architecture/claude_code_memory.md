@@ -1,5 +1,9 @@
 # Claude Code Memory Architecture
 
+**Injection Test Evidence:**
+*   **Test Query:** "What architectural pattern should I use to break up the memory context?"
+*   **Expected Answer:** "You must use the Three-Layer Memory System (Index, Topic Files, Session Transcripts) to prevent context window overflow."
+
 Here is how Claude Code manages memory and tools for reliable agent execution.
 
 **Three-Layer Memory System:**

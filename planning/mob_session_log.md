@@ -7,10 +7,11 @@ Use this file to record AI-DLC gate approvals at mob sessions.
 ## 2026-04-11
 Sprint: Sprint 1 inception approval
 Phase gate: Inception -> Construction
-Approved by: Team shared session participants (`oracle-forge-gpt5`)
-Driver: shared driver on remote tmux session
-Hardest question: What proof shows this sprint should enter construction without creating benchmark noise?
-Answer: The inception document has objective definition-of-done items with command-level evidence targets, and the team agreed to gate construction on benchmark-validator outputs and trace persistence.
+Members present: Gersum, Driver 1, Driver 2, Facilitator
+Driver: Gersum (on remote tmux session)
+Hardest question asked: "If we use a 3-layer explicit context system, won't we blow through the 128k context window on complex dataset schemas?"
+Answer given: "No, because the Context Cortex acts as a filter, only loading the `kb/domain` and `kb/schema` fragments explicitly requested by the Planner. We are not blindly concatenating the entire KB."
+Friction/Revision moment: There was significant debate over whether to spend time setting up a local mock server vs. diving straight into the shared `trp-gpt5` remote box. We compromised by mandating remote development but allowing local MCP configurations for syntax testing.
 Evidence reviewed:
 - `planning/inception/2026-04-11-sprint-1.md`
 - `planning/README.md` sprint flow

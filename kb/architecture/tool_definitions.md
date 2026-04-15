@@ -1,5 +1,9 @@
 # Oracle Forge Tool Definitions
 
+**Injection Test Evidence:**
+*   **Test Query:** "What tool should I use to fix a mismatch in Yelp keys between Mongo and DuckDB?"
+*   **Expected Answer:** "You must use the `normalize_join_key` tool and then the `run_python_transform` tool."
+
 Here is the complete tool surface for Oracle Forge. Each tool has one purpose. Do not use a tool outside its scope.
 
 **Database Query Tools (one per DB type — never mix):**

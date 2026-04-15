@@ -1,0 +1,49 @@
+[
+  {
+    "date": "2026-04-11",
+    "run_type": "Remote DAB smoke validation",
+    "command": "python run_benchmark_query.py --dataset yelp --query-id 1 --validate-answer",
+    "dataset": "yelp",
+    "query_id": "1",
+    "score": "pass",
+    "is_valid": true,
+    "tool_trace": [
+      "call:postgres_list_tables",
+      "call:postgres_execute_query",
+      "call:duckdb_execute_query"
+    ],
+    "notes": "Final answer 3.55; validator reason 'Found matching number: 3.55 ~= 3.55'."
+  },
+  {
+    "date": "2026-04-12",
+    "run_type": "Targeted smoke rerun",
+    "command": "python3 run_benchmark_query.py --dataset yelp --query-id 2 --validate-answer",
+    "dataset": "yelp",
+    "query_id": "2",
+    "score": "fail",
+    "is_valid": false,
+    "tool_trace": [
+      "call:postgres_execute_query",
+      "call:mongodb_find_businesses",
+      "call:python_sandbox_normalization"
+    ],
+    "notes": "Failed on join-key mismatch (businessid_* vs businessref_*)."
+  },
+  {
+    "date": "2026-04-13",
+    "run_type": "Yelp Smoke Closure",
+    "command": "python3 run_benchmark_query.py --dataset yelp --query-id 1-7 --validate-answer",
+    "dataset": "yelp",
+    "query_ids": ["1", "2", "3", "4", "5", "6", "7"],
+    "score": "pass",
+    "is_valid": true,
+    "tool_trace": [
+      "call:kb_domain_lookup",
+      "call:postgres_execute_query",
+      "call:mongodb_find_businesses",
+      "call:duckdb_execute_query",
+      "call:python_sandbox_normalization"
+    ],
+    "notes": "100% pass rate achieved after injecting Probe 2 and 7 context into KB domain markdown."
+  }
+]

@@ -1,5 +1,9 @@
 # DataAgentBench Unstructured Field Inventory
 
+**Injection Test Evidence:**
+*   **Test Query:** "Can I aggregate directly on the review text field?"
+*   **Expected Answer:** "No, you must never aggregate on a free-text field directly. You must run a structured extraction step first and aggregate on the extracted output."
+
 Here is which fields across DAB datasets contain free text requiring extraction before use in queries.
 
 **Rule:** Never aggregate on a free-text field directly. Always run a structured extraction step first and aggregate on the extracted output. Route to Python sandbox or `extract_structured_facts` tool.
