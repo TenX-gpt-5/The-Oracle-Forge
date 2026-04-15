@@ -71,7 +71,7 @@ Follow-ups:
 |------|------|
 | Eyobed Feleke | Driver |
 | Gersum Asfaw | Driver |
-| Samuel | Intelligence Officer |
-| Kidane | Intelligence Officer |
+| Samuel Lachisa| Intelligence Officer |
+| Kidane Gebremedhin| Intelligence Officer |
 | Bethelhem Abay | Signal Corps |
 | Lidya Dagnew | Signal Corps |
