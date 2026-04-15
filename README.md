@@ -24,7 +24,7 @@ Production-style data-agent workspace for the Oracle Forge challenge.
 ## Architecture Diagram
 
 - Diagram source docs: [ARCHITECTURE.md](./ARCHITECTURE.md), [ARCHITECTURE_V2.md](./ARCHITECTURE_V2.md), [ARCHITECTURE_V3.md](./ARCHITECTURE_V3.md)
-- Diagram image artifact: [oracle_forge_architecture_v2.png](./image.png)
+- Diagram image artifact: ![Architecture](./image.png)
 
 ## Fresh Machine Setup
 
