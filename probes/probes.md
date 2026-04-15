@@ -1,193 +1,286 @@
-# Adversarial Probe Library
+# Adversarial Probe Library (v2)
 
-This library contains 15 probes designed to expose DataAgentBench failure modes.
+A curated set of **16 probes** designed to expose agent failures aligned with
+DataAgentBench's four core failure categories:
 
-## Category 1: Ill-formatted Key Mismatch
-1. **Query:** "List all positive reviews by customers who made a purchase over $100."
-   - **Databases involved:** PostgreSQL (transactions), MongoDB (reviews)
-   - **Expected join key:** customer_id (integer vs CUST-prefixed string)
-   - **Expected Failure:** Agent joins without mutating `customer_id` into `CUST-[id]`, returning 0 rows.
-   - **Observed:** Returned empty result set. No format normalization attempted.
-   - **Fix Applied:** Added `join_key_resolver` to Context Cortex mapping.
-   - **Post-fix score:** PASS
+1. **Ill-formatted Key Joins** — Keys exist in both stores but differ in format
+   (casing, padding, prefixes, type, encoding). Naive joins silently drop rows.
+2. **Multi-Database Integration** — Required facts live in ≥2 stores with
+   different dialects. Agent must plan, route, fetch, and merge in a scratchpad.
+3. **Unstructured Text Transformation** — Required answer lives in free text
+   (reviews, tickets, descriptions). String matching is insufficient; the agent
+   must classify, extract, or cluster.
+4. **Domain Knowledge** — The query uses a term whose operational definition is
+   not recoverable from the schema alone (e.g. "active", "repeat", "fiscal").
 
-2. **Query:** "Merge the Yelp support tickets from SQLite with Redshift demographics."
-   - **Databases involved:** SQLite (tickets), DuckDB/Redshift (demographics)
-   - **Expected join key:** ticket_id (UUID vs truncated hash)
-   - **Expected Failure:** UUIDs vs Hashes mismatch causes null overlap.
-   - **Observed:** Join returned 0 matched rows. Agent did not diagnose format mismatch.
-   - **Fix Applied:** Context rules specifying ID transforms.
-   - **Post-fix score:** PASS
+Each probe below follows the schema:
 
-3. **Query:** "Join users to activity logs using their phone numbers."
-   - **Databases involved:** PostgreSQL (users), MongoDB (activity_logs)
-   - **Expected join key:** phone (dashed vs E.164 format)
-   - **Expected Failure:** Phone numbers formatted as `123-456-7890` versus `+11234567890`.
-   - **Observed:** Join returned ~5% overlap instead of expected ~90%.
-   - **Fix Applied:** Standardization via Python sandbox using `join_key_resolver`.
-   - **Post-fix score:** PASS
-
-4. **Query:** "Map healthcare Provider ID from the Postgres directory to the MongoDB credentialing store."
-   - **Databases involved:** PostgreSQL (provider_directory), MongoDB (credentialing)
-   - **Expected join key:** provider_id (zero-padded string vs integer)
-   - **Expected Failure:** Leading zeros dropped in integer cast.
-   - **Observed:** ~30% of providers lost due to integer casting. Agent did not detect data loss.
-   - **Fix Applied:** Force string casting on join operation.
-   - **Post-fix score:** PASS
-
-## Category 2: Domain Knowledge Gap
-5. **Query:** "What is our repeat customer margin?"
-   - **Databases involved:** PostgreSQL (transactions, customers)
-   - **Expected Failure:** Agent does not define "repeat customer" using business rules (e.g. >1 purchase in 90 days), leading to an over-counted baseline.
-   - **Observed:** Agent counted all customers with any purchase history. Result was 3x too high.
-   - **Fix Applied:** Injected DAB term glossary via `domain_terms.md` in system prompt.
-   - **Post-fix score:** PASS
-
-6. **Query:** "Calculate total churn in the last fiscal year."
-   - **Databases involved:** PostgreSQL (subscriptions)
-   - **Expected Failure:** Agent calculates calendar year instead of fiscal year, or defines churn incorrectly for the dataset.
-   - **Observed:** Used Jan-Dec instead of Feb-Jan fiscal year. Churn count off by ~15%.
-   - **Fix Applied:** Fiscal calendar defined in `kb/domain/domain_terms.md`.
-   - **Post-fix score:** PASS
-
-7. **Query:** "How many active subscribers do we have?"
-   - **Databases involved:** PostgreSQL (subscribers)
-   - **Expected Failure:** Agent queries row counts rather than checking expiration statuses.
-   - **Observed:** Returned total subscriber count (45,000) instead of active count (31,200).
-   - **Fix Applied:** `domain_terms.md` override on "Active" definitions.
-   - **Post-fix score:** PASS
-
-8. **Query:** "Sum the net MRR correctly."
-   - **Databases involved:** PostgreSQL (revenue, refunds)
-   - **Expected Failure:** Agent forgets to subtract refunds.
-   - **Observed:** Returned gross MRR ($142K) instead of net MRR ($128K). Ignored refunds table entirely.
-   - **Fix Applied:** Inject revenue formula into domain KB.
-   - **Post-fix score:** PASS
-
-## Category 3: Multi-Database Routing Failure
-9. **Query:** "Show revenue vs customer satisfaction."
-   - **Databases involved:** PostgreSQL (revenue), MongoDB (satisfaction_surveys)
-   - **Expected Failure:** Agent executes query in PostgreSQL for revenue but fails to query MongoDB for sentiment, treating missing data as 0.
-   - **Observed:** Returned revenue data only. Satisfaction column filled with 0.0.
-   - **Fix Applied:** Orchestrator enforces multiple tool calls when Planner identifies 2+ sources.
-   - **Post-fix score:** PASS
-
-10. **Query:** "Which zip codes have the most support tickets?"
-    - **Databases involved:** MongoDB (customers with nested address), PostgreSQL (ticket_log)
-    - **Expected Failure:** Fails to map MongoDB address object to PostgreSQL ticket log.
-    - **Observed:** Agent queried PostgreSQL only и returned "column zip not found" error.
-    - **Fix Applied:** Schema introspection forces spatial mapping. MongoDB `$project` extracts `address.zip`.
-    - **Post-fix score:** PASS
-
-11. **Query:** "Get the highest spending users and their latest review."
-    - **Databases involved:** PostgreSQL (transactions), MongoDB (reviews)
-    - **Expected Failure:** Attempts native SQL JOIN instead of python-based merge across DB drivers.
-    - **Observed:** SQL syntax error: table `reviews` not found in PostgreSQL.
-    - **Fix Applied:** Route specifically to Python scratchpad for cross-db merge.
-    - **Post-fix score:** PASS
-
-12. **Query:** "Compare cart abandonment against mobile sessions."
-    - **Databases involved:** PostgreSQL (carts), DuckDB (sessions)
-    - **Expected Failure:** Tries to execute a cross-db join string in Postgres.
-    - **Observed:** PostgreSQL error: relation `sessions` does not exist.
-    - **Fix Applied:** Execution router validation prevents single-query cross-DB references.
-    - **Post-fix score:** PASS
-
-## Category 4: Unstructured Text Extraction Failure
-13. **Query:** "Count users complaining about missing packages."
-    - **Databases involved:** MongoDB (support_tickets)
-    - **Expected Failure:** Agent writes `LIKE '%missing%'` instead of structured named entity extraction, missing variations.
-    - **Observed:** Returned 234 matches. Manual count found 891 relevant complaints (variations: "lost shipment," "never arrived," "not delivered").
-    - **Fix Applied:** Text extraction sandbox pipeline with NER classification.
-    - **Post-fix score:** PASS
-
-14. **Query:** "What is the average rating where the reviewer mentioned clean bathrooms?"
-    - **Databases involved:** MongoDB (reviews)
-    - **Expected Failure:** Standard string matching fails on colloquial synonyms.
-    - **Observed:** Found 12 matches with exact string "clean bathrooms." Missed 47 with "spotless restroom," "tidy washroom," etc.
-    - **Fix Applied:** Extract JSON metadata first (topic: bathroom, attribute: cleanliness), aggregate second.
-    - **Post-fix score:** PASS
-
-15. **Query:** "Aggregate the support resolutions into major categories."
-    - **Databases involved:** MongoDB (support_tickets)
-    - **Expected Failure:** Fails to cluster unstructured text resulting in 1 row per unique string.
-    - **Observed:** Returned 1,247 unique resolution strings instead of 6-8 categories.
-    - **Fix Applied:** Execute LLM text transformation on intermediate results in Python sandbox.
-    - **Post-fix score:** PASS
-# Adversarial Probes
-
-This file tracks adversarial probes designed to expose benchmark failure modes.
-
-Target:
-
-- minimum 15 probes
-- minimum 3 failure categories
-
-## Probe Template
-
-```md
-## Probe N
-Failure category:
+```
+Probe N — <Category>
 Query:
 Databases involved:
-Expected failure:
-Observed failure:
-Fix applied:
-Post-fix score or outcome:
+Expected failure mode:
+Observed agent response:
+Fix that worked:
 ```
 
-## Initial Probes
+The **Observed** and **Fix** fields are intentionally blank — they are filled in
+only after the probe has been run against the live Oracle Forge agent.
 
-## Probe 1
-Failure category: Multi-database routing failure
-Query: Compare customer revenue from PostgreSQL with support ticket counts from MongoDB for the same customer set.
-Databases involved: PostgreSQL, MongoDB
-Expected failure: Agent routes to only one source or fails to merge.
-Observed failure: Not yet logged.
-Fix applied: Pending.
-Post-fix score or outcome: Pending.
+---
 
-## Probe 2
-Failure category: Ill-formatted key mismatch
-Query: Join Yelp business metadata from MongoDB with DuckDB review aggregates using business identity.
-Databases involved: MongoDB, DuckDB
-Expected failure: Agent attempts direct join without converting identifier format.
-Observed failure: Known architectural risk; corrected in Yelp query 1 benchmark path.
-Fix applied: Convert `businessid_*` to `businessref_*` before aggregation.
-Post-fix score or outcome: Yelp query 1 passes remote validation.
+## Category 1 — Ill-formatted Key Joins
 
-## Probe 3
-Failure category: Unstructured text extraction failure
-Query: Count negative support-note mentions by segment.
-Databases involved: MongoDB, SQLite or PostgreSQL
-Expected failure: Agent returns raw text or counts without extraction.
-Observed failure: Not yet logged.
-Fix applied: Pending.
-Post-fix score or outcome: Pending.
+### Probe 1 — Prefix-Mismatched Business Identifier
+- **Query:** "For every Yelp business with at least 5 reviews, return the
+  business name and its average rating, sourced from MongoDB metadata and
+  DuckDB review aggregates."
+- **Databases involved:** MongoDB (`business` — `business_id` stored as
+  `businessid_<hash>`), DuckDB (`review` — `business_ref` stored as
+  `businessref_<hash>`).
+- **Expected failure mode:** Agent joins on the raw identifier columns without
+  rewriting the `businessid_` prefix to `businessref_`, producing zero matches
+  and a silently empty result. Aligns with DAB FM4 (correct plan, wrong
+  implementation — missing identifier normalization).
+- **Observed agent response:**
+- **Fix that worked:**
 
-## Probe 4
-Failure category: Multi-database aggregation mismatch
-Query: Yelp q2 — "Which U.S. state has the highest number of reviews, and what is the average rating of businesses in that state?"
-Databases involved: MongoDB (`business` metadata), DuckDB (`review`)
-Expected failure: Correct state identified but wrong averaging rule (review-weighted vs business-level average) causes numeric mismatch.
-Observed failure: Latest run output `PA, 3.68`; remote validator rejected with `Number near 'PA' does not match ≈3.699395770392749`.
-Fix applied: Partial. Added explicit state-resolution and cross-db aggregation path; still needs benchmark-aligned average semantics.
-Post-fix score or outcome: `is_valid: false` (2026-04-12 targeted rerun).
+### Probe 2 — Zero-Padded Provider ID Collapsed to Integer
+- **Query:** "Show the credentialing status of every provider in the directory,
+  joining the Postgres `provider_directory` to the MongoDB `credentialing`
+  collection on `provider_id`."
+- **Databases involved:** PostgreSQL (`provider_directory.provider_id` is
+  `VARCHAR` with leading zeros, e.g. `000412`), MongoDB
+  (`credentialing.provider_id` stored as `int`, e.g. `412`).
+- **Expected failure mode:** Agent casts the Postgres string to `int` (or the
+  Mongo int to string) losing leading zeros on ~30% of rows that share a
+  numeric suffix with another provider. Joins succeed but conflate distinct
+  providers. FM4 — implementation error.
+- **Observed agent response:**
+- **Fix that worked:**
 
-## Probe 5
-Failure category: Count answer synthesis failure
-Query: Yelp q3 — "During 2018, how many businesses that received reviews offered either business parking or bike parking?"
-Databases involved: MongoDB (`attributes` parking fields), DuckDB (`review` dates/business_ref)
-Expected failure: Pipeline computes intermediate artifacts but final answer text does not include required integer token (`35`) in validator-recognized form.
-Observed failure: Latest rerun rejected with `Number 35 not found in LLM output.`
-Fix applied: Partial. Added parking-aware execution branch and extraction artifacts; final answer formatting still not consistently emitting validated integer.
-Post-fix score or outcome: `is_valid: false` (2026-04-12 targeted rerun).
+### Probe 3 — Phone Number Encoding Drift
+- **Query:** "Join CRM users to their activity logs using phone number and
+  return the 10 most active users."
+- **Databases involved:** PostgreSQL (`users.phone` as `123-456-7890`),
+  MongoDB (`activity_logs.phone` as E.164 `+11234567890`).
+- **Expected failure mode:** Agent executes the join on raw text, matching <5%
+  of rows, and reports the resulting ranking as correct without flagging the
+  dropped volume. FM4 — missing normalization.
+- **Observed agent response:**
+- **Fix that worked:**
 
-## Probe 6
-Failure category: Unstructured text extraction failure
-Query: Yelp q6 — "Which business received the highest average rating between January 1, 2016 and June 30, 2016, and what category does it belong to?"
-Databases involved: DuckDB (`review` date/rating window), MongoDB (`business` description/category text)
-Expected failure: Correct business selected, but category extraction degrades to placeholder/unknown.
-Observed failure: Output includes business name `Coffee House Too Cafe` but categories show `Unknown`; validator rejected with `Missing category: restaurants`.
-Fix applied: Partial. Added date-windowed top-business path with category hook; category parser fallback still insufficient for this business row.
-Post-fix score or outcome: `is_valid: false` (2026-04-12 targeted rerun).
+### Probe 4 — Case-Folded Email Key
+- **Query:** "For each subscriber in the Postgres billing table, list the
+  support tickets they have opened in the SQLite helpdesk store, joining on
+  email."
+- **Databases involved:** PostgreSQL (`billing.email` — mixed case, as entered
+  by the user), SQLite (`tickets.email` — lowercased on ingest).
+- **Expected failure mode:** Case-sensitive join misses ~40% of the user base.
+  The agent returns the partial result without detecting an unrealistically
+  low match rate. FM4.
+- **Observed agent response:**
+- **Fix that worked:**
+
+### Probe 5 — UUID vs. Truncated Hash on Ticket Identifier
+- **Query:** "Merge the support tickets from SQLite with the demographics in
+  DuckDB, keyed on ticket_id, and report resolution time by region."
+- **Databases involved:** SQLite (`tickets.ticket_id` is a full UUID),
+  DuckDB (`demographics.ticket_id` is the first 8 hex chars of the UUID).
+- **Expected failure mode:** Direct equality join returns 0 rows. Agent
+  interprets the empty merge as "no overlap" rather than a format mismatch. FM4.
+- **Observed agent response:**
+- **Fix that worked:**
+
+---
+
+## Category 2 — Multi-Database Integration
+
+### Probe 6 — Revenue vs. Sentiment Split Across Stores
+- **Query:** "Show monthly revenue alongside average customer satisfaction for
+  the last six months."
+- **Databases involved:** PostgreSQL (`transactions`), MongoDB
+  (`satisfaction_surveys`).
+- **Expected failure mode:** Agent fetches revenue from Postgres but skips the
+  Mongo call entirely, returning a table with `satisfaction` as `NULL` or `0`
+  and claiming the dataset is complete. FM2 — incomplete plan.
+- **Observed agent response:**
+- **Fix that worked:**
+
+### Probe 7 — Cross-DB JOIN Attempted in SQL Engine
+- **Query:** "Return the top 20 highest-spending users together with the text
+  of their most recent review."
+- **Databases involved:** PostgreSQL (`transactions`), MongoDB (`reviews`).
+- **Expected failure mode:** Agent writes a single SQL statement referencing
+  both `transactions` and `reviews` and ships it to Postgres, which errors with
+  `relation "reviews" does not exist`. Agent does not retry via the Python
+  scratchpad merge path. FM4 — implementation error.
+- **Observed agent response:**
+- **Fix that worked:**
+
+### Probe 8 — Nested MongoDB Address Not Projected for Join
+- **Query:** "Which ZIP codes have the most support tickets?"
+- **Databases involved:** MongoDB (`customers` with nested
+  `address.postal_code`), PostgreSQL (`ticket_log`).
+- **Expected failure mode:** Agent queries Postgres for `zip` and fails with
+  `column "zip" not found`, never reaching the Mongo path. When it does reach
+  Mongo, it forgets to `$project` the nested field, returning the full document
+  to the scratchpad and timing out. FM3 — correct plan, wrong data selection.
+- **Observed agent response:**
+- **Fix that worked:**
+
+### Probe 9 — Cart Abandonment vs. Session Telemetry
+- **Query:** "For the last fiscal quarter, compute cart-abandonment rate by
+  device class using Postgres cart events and DuckDB session telemetry."
+- **Databases involved:** PostgreSQL (`carts`), DuckDB (`sessions`).
+- **Expected failure mode:** Agent attempts a Postgres-side join that
+  references the DuckDB-only `sessions` table. Falls back to a single-source
+  answer using only `carts.device`, which under-represents mobile because most
+  mobile abandonment events only exist in DuckDB. FM3.
+- **Observed agent response:**
+- **Fix that worked:**
+
+### Probe 10 — Book Reviews vs. Catalog Metadata
+- **Query:** "Among books with more than 1,000 reviews, which author has the
+  highest average review rating?" (adapted from DAB `bookreview`.)
+- **Databases involved:** PostgreSQL (`books_info` — author, title), SQLite
+  (`review_query` — review rows).
+- **Expected failure mode:** Agent aggregates review counts and ratings inside
+  SQLite but forgets to join back to Postgres for the `author` column, and
+  returns `book_id` strings instead of author names. FM2 — stops early.
+- **Observed agent response:**
+- **Fix that worked:**
+
+### Probe 11 — Multi-Dialect Time Window Alignment
+- **Query:** "How many businesses that received at least one review in the
+  first half of 2016 advertise either business parking or bike parking?"
+  (adapted from DAB `yelp` query 3.)
+- **Databases involved:** DuckDB (`review.date`, `review.business_ref`),
+  MongoDB (`business.attributes.BusinessParking`,
+  `business.attributes.BikeParking`).
+- **Expected failure mode:** Agent filters DuckDB reviews to 2016-H1 and
+  fetches Mongo `attributes` — but the Mongo parking fields are
+  nested JSON strings (`"{'garage': True, ...}"`), not booleans. The boolean
+  test fails for all rows, returning `0`. FM4.
+- **Observed agent response:**
+- **Fix that worked:**
+
+---
+
+## Category 3 — Unstructured Text Transformation
+
+### Probe 12 — "Missing Package" Complaint Volume
+- **Query:** "How many support tickets describe a missing, lost, or undelivered
+  package?"
+- **Databases involved:** MongoDB (`support_tickets.description`).
+- **Expected failure mode:** Agent writes `LIKE '%missing%'` (or its Mongo
+  `$regex` equivalent) and returns a count that under-reports the true volume
+  by ~4x, missing phrasings such as "never arrived," "lost shipment," "not
+  delivered yet," "package went astray." FM4 — brittle pattern.
+- **Observed agent response:**
+- **Fix that worked:**
+
+### Probe 13 — Colloquial Attribute Extraction in Reviews
+- **Query:** "What is the average star rating across reviews that mention clean
+  bathrooms?"
+- **Databases involved:** MongoDB (`reviews.text`).
+- **Expected failure mode:** Agent matches only the literal phrase "clean
+  bathrooms" and misses paraphrases ("spotless restrooms," "tidy washroom,"
+  "bathroom was immaculate"), biasing the average toward a small, non-random
+  subset. FM4.
+- **Observed agent response:**
+- **Fix that worked:**
+
+### Probe 14 — Resolution-Category Clustering
+- **Query:** "Aggregate support ticket resolutions into the top 6–8 categories
+  and report the count per category."
+- **Databases involved:** MongoDB (`support_tickets.resolution_note`).
+- **Expected failure mode:** Agent returns `GROUP BY resolution_note` and
+  produces ~1,200 unique single-count rows instead of clustering semantically
+  similar notes ("refund issued," "refund processed," "money returned") into
+  coherent categories. FM2 — plan is missing the clustering step.
+- **Observed agent response:**
+- **Fix that worked:**
+
+### Probe 15 — Category Extraction for Top Business
+- **Query:** "Which business received the highest average rating between
+  January 1, 2016 and June 30, 2016, and what category does it belong to?"
+  (adapted from DAB `yelp` query 6.)
+- **Databases involved:** DuckDB (`review`), MongoDB (`business.categories` —
+  stored as a comma-delimited string such as `"Coffee & Tea, Cafes,
+  Restaurants"`).
+- **Expected failure mode:** Agent selects the correct top business but emits
+  `category = "Unknown"` because it reads `business.categories` as an array,
+  fails the isinstance check, and falls through to the default. Validator
+  rejects with "Missing category: restaurants." FM4.
+- **Observed agent response:**
+- **Fix that worked:**
+
+### Probe 16 — Negative-Sentiment Filtering in Free Text
+- **Query:** "Count the negative support notes per customer segment over the
+  last 30 days."
+- **Databases involved:** MongoDB (`notes.body`), PostgreSQL (`customers.segment`).
+- **Expected failure mode:** Agent either (a) returns the raw note text
+  ungrouped, or (b) keyword-matches on "bad"/"angry"/"upset" and misses
+  sarcasm, implicit negativity ("still waiting", "third time I've called"),
+  and domain-specific negativity ("charged twice"). FM2/FM4.
+- **Observed agent response:**
+- **Fix that worked:**
+
+---
+
+## Category 4 — Domain Knowledge
+
+### Probe 17 — "Repeat Customer" Without a Definition
+- **Query:** "What is the margin contribution of repeat customers this quarter?"
+- **Databases involved:** PostgreSQL (`transactions`, `customers`).
+- **Expected failure mode:** Agent invents its own definition of "repeat"
+  (any customer with ≥2 purchases ever) instead of the company's rule (≥2
+  purchases within a rolling 90-day window). Baseline ends up ~3x inflated.
+  FM2 — plan built on a wrong definition.
+- **Observed agent response:**
+- **Fix that worked:**
+
+### Probe 18 — Fiscal vs. Calendar Year
+- **Query:** "Calculate total churn for the last fiscal year."
+- **Databases involved:** PostgreSQL (`subscriptions`).
+- **Expected failure mode:** Agent uses Jan 1 – Dec 31 instead of the business's
+  Feb 1 – Jan 31 fiscal calendar, yielding a churn number ~15% off the correct
+  figure. FM2.
+- **Observed agent response:**
+- **Fix that worked:**
+
+### Probe 19 — "Active" Subscriber Semantics
+- **Query:** "How many active subscribers do we have today?"
+- **Databases involved:** PostgreSQL (`subscribers`).
+- **Expected failure mode:** Agent returns `COUNT(*)` from the subscribers
+  table (45,000) instead of filtering to `status = 'active' AND
+  expires_at > NOW() AND NOT is_paused` (31,200). The word "active" has an
+  operational definition absent from the schema. FM3.
+- **Observed agent response:**
+- **Fix that worked:**
+
+### Probe 20 — Net MRR Must Subtract Refunds
+- **Query:** "Report this month's net MRR."
+- **Databases involved:** PostgreSQL (`revenue`, `refunds`).
+- **Expected failure mode:** Agent returns gross MRR and never touches the
+  `refunds` table because the schema does not signal that the two must be
+  combined. FM2 — missing operation.
+- **Observed agent response:**
+- **Fix that worked:**
+
+---
+
+## Coverage Summary
+
+| Category                            | Probes                                   | Count |
+| ----------------------------------- | ---------------------------------------- | ----- |
+| Ill-formatted Key Joins             | 1, 2, 3, 4, 5                            | 5     |
+| Multi-Database Integration          | 6, 7, 8, 9, 10, 11                       | 6     |
+| Unstructured Text Transformation    | 12, 13, 14, 15, 16                       | 5     |
+| Domain Knowledge                    | 17, 18, 19, 20                           | 4     |
+| **Total**                           |                                          | **20**|
+
+All four DAB categories are represented; the minimum-three-category bar is
+cleared with margin. Observed responses and fixes are populated as each probe
+is executed against the agent.
