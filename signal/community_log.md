@@ -1,4 +1,4 @@
-cat > /shared/DataAgentBench/oracle_forge_v3/signal/community_log.md << 'EOF'
+
 # Community Log
 Track useful external conversations and technical intelligence gathered from them.
 
@@ -15,4 +15,3 @@ Link: github.com/sanbuphy/claude-code-source-code
 What was learned: Three-layer memory system — MEMORY.md index, topic files loaded on demand, session transcripts searchable. autoDream consolidation pattern for promoting short-term corrections to long-term memory.
 Why it matters to Oracle Forge: Our KB v1/v2/v3 architecture directly mirrors this pattern. KB v3 corrections log is our autoDream equivalent.
 Action taken: Architecture documented in kb/architecture/context_layers.md
-EOF
