@@ -1,4 +1,3 @@
-
 # Community Log
 Track useful external conversations and technical intelligence gathered from them.
 
@@ -15,3 +14,28 @@ Link: github.com/sanbuphy/claude-code-source-code
 What was learned: Three-layer memory system — MEMORY.md index, topic files loaded on demand, session transcripts searchable. autoDream consolidation pattern for promoting short-term corrections to long-term memory.
 Why it matters to Oracle Forge: Our KB v1/v2/v3 architecture directly mirrors this pattern. KB v3 corrections log is our autoDream equivalent.
 Action taken: Architecture documented in kb/architecture/context_layers.md
+
+## 2026-04-14
+Source: Practitioner comment pattern — DataAgentBench GitHub repository issues and PRs
+Link: github.com/ucbepic/DataAgentBench/issues
+What was learned: The dominant practitioner failure is ill-formatted join keys (integers vs prefixed strings), not multi-database routing. Practitioners describe solving routing, then hitting zero-row joins from ID mismatches.
+Why it matters to Oracle Forge: Changed Signal Corps framing for the Reddit post — led with join key normalization instead of routing as the hard problem. Also reprioritized adversarial probe library.
+Action taken: Reddit post framing updated. Intelligence Officer flagged for KB corrections log.
+
+---
+
+## Substantive Community Comments Posted by Team
+
+## 2026-04-14
+Platform: Reddit — r/LocalLLaMA
+Link: https://www.reddit.com/r/LocalLLaMA/comments/1slh1ce/were_building_against_dataagentbench_uc_berkeley/
+Posted by: Bethelhem Abay (Signal Corps)
+Comment type: Original post explaining why multi-database AI agents are harder than they look — DAB four hard requirements, the 38% ceiling, ill-formatted join key problem with specific example (integer vs CUST-001 string in MongoDB).
+Response: Monitoring — responses expected before April 18.
+
+## 2026-04-14
+Platform: X (Twitter)
+Link: https://x.com/LidyaDagnew/status/2044044847699329443?s=20
+Posted by: Lidya Dagnew (Signal Corps)
+Comment type: Technical thread on multi-database context engineering for AI data agents. Referenced Claude Code 3-layer memory architecture, DAB 38% ceiling, ill-formatted join keys as primary failure mode.
+Response: Monitoring — responses expected before April 18.

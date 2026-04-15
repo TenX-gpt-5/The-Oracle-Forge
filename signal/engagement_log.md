@@ -1,6 +1,72 @@
 # Engagement Log
 Track public posts, links, dates, and any measurable response.
 
+## 2026-04-08
+Platform: Slack (internal)
+Link: #oracle-forge-gpt5
+Topic: Daily update — Week 8 kickoff
+Update:
+- Shipped: challenge document studied, team roles assigned, GitHub repo created
+- Stuck: tenai-infra server access pending auth key distribution
+- Next: each member reads DAB paper and Claude Code architecture docs before Day 2 mob
+Response: Internal only
+Follow-up needed: None
+
+## 2026-04-09
+Platform: Slack (internal)
+Link: #oracle-forge-gpt5
+Topic: Daily update — infrastructure setup and architecture study
+Update:
+- Shipped: tenai-infra running, Tailscale mesh verified for all team devices, DAB repository cloned
+- Stuck: DuckDB not exposing natively through Toolbox in current environment
+- Next: finalize architecture design and draft Inception document before mob session approval
+Response: Internal only
+Follow-up needed: None
+
+## 2026-04-10
+Platform: Slack (internal)
+Link: #oracle-forge-gpt5
+Topic: Daily update — architecture design and KB structure
+Update:
+- Shipped: V3 architecture finalized (8-component design drawing from Claude Code + OpenAI data agent + Anton), KB directory structure created
+- Stuck: KB injection test protocol needs to be agreed before committing any documents
+- Next: Sprint 1 Inception document drafted for mob session approval tomorrow
+Response: Internal only
+Follow-up needed: None
+
+## 2026-04-11
+Platform: Slack (internal)
+Link: #oracle-forge-gpt5
+Topic: Daily update — Sprint 1 inception approved, KB v1 committed, first benchmark pass
+Update:
+- Shipped: Sprint 1 Inception approved at mob session, KB v1 (architecture) and KB v2 (domain) committed with injection tests PASS, Yelp query 1 remote DAB validation returned is_valid: true
+- Stuck: Toolbox-native DuckDB not yet available, using remote DAB adapter as authoritative path
+- Next: run targeted benchmark reruns on q2, q3, q6 — all three identified as highest-leverage failures
+Response: Internal only
+Follow-up needed: None
+
+## 2026-04-12
+Platform: Slack (internal)
+Link: #oracle-forge-gpt5
+Topic: Daily update — targeted benchmark reruns, all three failing
+Update:
+- Shipped: targeted reruns on q2, q3, q6 — failure modes identified and documented in probes/probes.md
+- Stuck: q2 correct state (PA) but wrong average (3.68 vs expected 3.699); q3 integer count not emitting; q6 category resolving to Unknown
+- Next: fix q2 aggregation semantics, q3 answer format, q6 category extraction
+Response: Internal only
+Follow-up needed: None
+
+## 2026-04-13
+Platform: Slack (internal)
+Link: #oracle-forge-gpt5
+Topic: Daily update — q3 and q6 now passing, baseline harness artifact committed
+Update:
+- Shipped: q3 is_valid: true, q6 is_valid: true after branch sync and fixes; initial_baseline_with_trace.json committed to results/
+- Stuck: q2 still blocked — value 3.76 vs validator expectation 3.699, averaging semantics unclear
+- Next: Signal Corps posts go live April 14, KB v3 corrections log to be expanded
+Response: Internal only
+Follow-up needed: None
+
 ## 2026-04-14
 Platform: X (Twitter)
 Link: https://x.com/LidyaDagnew/status/2044044847699329443?s=20
