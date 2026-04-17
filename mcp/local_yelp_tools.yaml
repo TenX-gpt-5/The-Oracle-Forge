@@ -14,7 +14,7 @@ password: ${PG_PASSWORD:gpt-5}
 kind: sources
 name: yelp-mongodb
 type: mongodb
-uri: ${MONGO_URI:mongodb://localhost:27017/artifacts_db}
+uri: ${MONGO_URI:mongodb://localhost:27017/yelp_db}
 ---
 kind: sources
 name: yelp-duckdb
@@ -38,7 +38,7 @@ name: mongodb-find-businesses
 type: mongodb-find
 source: yelp-mongodb
 description: Query Yelp business metadata from the local MongoDB database.
-database: ${YELP_MONGO_DB:artifacts_db}
+database: ${YELP_MONGO_DB:yelp_db}
 collection: business
 filterPayload: |
   {}
@@ -49,7 +49,7 @@ name: mongodb-find-checkins
 type: mongodb-find
 source: yelp-mongodb
 description: Query Yelp checkin metadata from the local MongoDB database.
-database: ${YELP_MONGO_DB:artifacts_db}
+database: ${YELP_MONGO_DB:yelp_db}
 collection: checkin
 filterPayload: |
   {}

@@ -1,3 +1,0 @@
-# Oracle Forge now runs with the Python standard library for local smoke tests.
-# The package below is optional and only used when you want live Postgres access.
-psycopg[binary]

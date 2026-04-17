@@ -11,10 +11,12 @@ import json
 import os
 import shutil
 import subprocess
+from ast import literal_eval
 from pathlib import Path
 from typing import Any
 
 from src.tools.db_tools import inspect_schema, run_mongo_pipeline, run_sql_duckdb, run_sql_postgres, run_sql_sqlite
+from src.tools.mcp_stdio_client import MCPStdIOClient
 
 
 class ToolboxClient:
@@ -30,10 +32,14 @@ class ToolboxClient:
         self,
         toolbox_path: str | None = None,
         tools_file: str | None = None,
+        mcp_config_file: str | None = None,
     ) -> None:
         self.toolbox_path = toolbox_path or os.getenv("TOOLBOX_PATH", "toolbox")
         configured_tools_file = tools_file or os.getenv("TOOLBOX_TOOLS_FILE", "mcp/tools.yaml")
         self.tools_file = str(Path(configured_tools_file))
+        configured_mcp_file = mcp_config_file or os.getenv("MCP_CONFIG_FILE", "mcp/local_yelp_mcp.json")
+        self.mcp_config_file = str(Path(configured_mcp_file))
+        self.duckdb_mcp = MCPStdIOClient(self.mcp_config_file, server_name="duckdb")
 
     def configured(self) -> bool:
         return Path(self.tools_file).exists()
@@ -46,6 +52,10 @@ class ToolboxClient:
             toolbox_result = self._inspect_schema_via_toolbox(source)
             if toolbox_result is not None:
                 return toolbox_result
+        if source == "duckdb":
+            duckdb_schema = self._inspect_schema_via_mcp(source)
+            if duckdb_schema is not None:
+                return duckdb_schema
         return inspect_schema(source)
 
     def execute_source(
@@ -77,6 +87,9 @@ class ToolboxClient:
                 toolbox_result = self._execute_sql_via_toolbox(source, query)
                 if toolbox_result is not None:
                     return toolbox_result, {"tool": "toolbox_sql", "source": source, "query": query, "mode": "toolbox"}
+            mcp_result = self._execute_sql_via_mcp(source, query)
+            if mcp_result is not None:
+                return mcp_result, {"tool": "mcp_sql", "source": source, "query": query, "mode": "mcp-stdio"}
             return run_sql_duckdb(query), {"tool": "run_sql_duckdb", "source": source, "query": query, "mode": "local-fallback"}
 
         if source == "mongodb":
@@ -103,6 +116,20 @@ class ToolboxClient:
             return None
         return {"ok": True, "source": source, "table_names": parsed, "schema": {"tables": parsed}}
 
+    def _inspect_schema_via_mcp(self, source: str) -> dict[str, Any] | None:
+        if source != "duckdb" or not self.duckdb_mcp.available():
+            return None
+        result = self._execute_sql_via_mcp(source, "SHOW TABLES;")
+        if result is None or not result.get("ok"):
+            return None
+        table_names = []
+        for row in result.get("rows", []):
+            if isinstance(row, dict):
+                table_name = row.get("name") or row.get("table_name") or row.get("value")
+                if table_name:
+                    table_names.append(str(table_name))
+        return {"ok": True, "source": source, "table_names": table_names, "schema": {"tables": table_names}}
+
     def _execute_sql_via_toolbox(self, source: str, query: str) -> dict[str, Any] | None:
         tool_name = {
             "postgres": "postgres-execute",
@@ -122,6 +149,47 @@ class ToolboxClient:
             "row_count": len(rows),
             "columns": list(rows[0].keys()) if rows and isinstance(rows[0], dict) else [],
             "toolbox_raw": parsed,
+        }
+
+    def _execute_sql_via_mcp(self, source: str, query: str) -> dict[str, Any] | None:
+        if source != "duckdb" or not self.duckdb_mcp.available():
+            return None
+        try:
+            response = self.duckdb_mcp.call_first_matching_tool(
+                preferred_names=[
+                    "duckdb-execute",
+                    "execute_sql",
+                    "query",
+                    "run_query",
+                ],
+                argument_candidates=[
+                    {"query": query},
+                    {"sql": query},
+                    {"statement": query},
+                    {"sql_query": query},
+                ],
+            )
+        except Exception:
+            return None
+        if not response.get("ok"):
+            return None
+
+        payload = response.get("payload")
+        rows = self._extract_rows(payload)
+        if not rows:
+            rows = self._rows_from_scalar_payload(payload)
+        if not rows and isinstance(payload, list) and all(not isinstance(item, dict) for item in payload):
+            rows = [{"value": item} for item in payload]
+
+        return {
+            "ok": True,
+            "source": source,
+            "query": query,
+            "rows": rows,
+            "row_count": len(rows),
+            "columns": list(rows[0].keys()) if rows and isinstance(rows[0], dict) else [],
+            "mcp_raw": payload,
+            "mcp_tool_name": response.get("tool_name"),
         }
 
     def _execute_mongo_via_toolbox(self, pipeline: dict[str, Any]) -> dict[str, Any] | None:
@@ -181,6 +249,28 @@ class ToolboxClient:
                 if isinstance(value, list):
                     return [row for row in value if isinstance(row, dict)]
         return []
+
+    def _rows_from_scalar_payload(self, payload: Any) -> list[dict[str, Any]]:
+        parsed = payload
+        if isinstance(payload, str):
+            try:
+                parsed = literal_eval(payload)
+            except (ValueError, SyntaxError):
+                return []
+
+        if not isinstance(parsed, list):
+            return []
+
+        rows: list[dict[str, Any]] = []
+        for item in parsed:
+            if isinstance(item, dict):
+                rows.append(item)
+            elif isinstance(item, (list, tuple)):
+                if len(item) == 1:
+                    rows.append({"value": item[0]})
+                else:
+                    rows.append({f"value_{index}": value for index, value in enumerate(item)})
+        return rows
 
     def _build_postgres_query(
         self,

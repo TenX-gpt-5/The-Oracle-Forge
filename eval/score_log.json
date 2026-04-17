@@ -5,6 +5,7 @@
     "command": "python run_benchmark_query.py --dataset yelp --query-id 1 --validate-answer",
     "dataset": "yelp",
     "query_id": "1",
+    "iterations": null,
     "score": "pass",
     "is_valid": true,
     "tool_trace": [
@@ -20,6 +21,7 @@
     "command": "python3 run_benchmark_query.py --dataset yelp --query-id 2 --validate-answer",
     "dataset": "yelp",
     "query_id": "2",
+    "iterations": null,
     "score": "fail",
     "is_valid": false,
     "tool_trace": [
@@ -35,6 +37,7 @@
     "command": "python3 run_benchmark_query.py --dataset yelp --query-id 1-7 --validate-answer",
     "dataset": "yelp",
     "query_ids": ["1", "2", "3", "4", "5", "6", "7"],
+    "iterations": null,
     "score": "pass",
     "is_valid": true,
     "tool_trace": [
@@ -45,5 +48,126 @@
       "call:python_sandbox_normalization"
     ],
     "notes": "100% pass rate achieved after injecting Probe 2 and 7 context into KB domain markdown."
+  },
+  {
+    "date": "2026-04-17",
+    "run_type": "Remote-local DAB regression on standalone local DBs",
+    "command": "REMOTE_SANDBOX_HOST=127.0.0.1 REMOTE_SANDBOX_PYTHON=/usr/bin/python3 python3 run_benchmark_query.py --dataset yelp --query-id 1 --validate-answer",
+    "dataset": "yelp",
+    "query_id": "1",
+    "score": "pass",
+    "is_valid": true,
+    "tool_trace": [
+      "call:remote_sandbox_local_exec",
+      "call:duckdb_execute_query",
+      "call:mongodb_find_businesses"
+    ],
+    "notes": "Final answer 3.55; validator reason 'Found matching number: 3.55 ~= 3.55'."
+  },
+  {
+    "date": "2026-04-17",
+    "run_type": "Remote-local DAB regression on standalone local DBs",
+    "command": "REMOTE_SANDBOX_HOST=127.0.0.1 REMOTE_SANDBOX_PYTHON=/usr/bin/python3 python3 run_benchmark_query.py --dataset yelp --query-id 2 --validate-answer",
+    "dataset": "yelp",
+    "query_id": "2",
+    "score": "pass",
+    "is_valid": true,
+    "tool_trace": [
+      "call:remote_sandbox_local_exec",
+      "call:duckdb_execute_query",
+      "call:mongodb_find_businesses"
+    ],
+    "notes": "Final answer PA, 3.70; validator reason 'Found: name='PA', value≈3.7'."
+  },
+  {
+    "date": "2026-04-17",
+    "run_type": "Remote-local DAB regression on standalone local DBs",
+    "command": "REMOTE_SANDBOX_HOST=127.0.0.1 REMOTE_SANDBOX_PYTHON=/usr/bin/python3 python3 run_benchmark_query.py --dataset yelp --query-id 3 --validate-answer",
+    "dataset": "yelp",
+    "query_id": "3",
+    "score": "pass",
+    "is_valid": true,
+    "tool_trace": [
+      "call:remote_sandbox_local_exec",
+      "call:duckdb_execute_query",
+      "call:mongodb_find_businesses"
+    ],
+    "notes": "Final answer 35; validator reason 'Found number: 35'."
+  },
+  {
+    "date": "2026-04-17",
+    "run_type": "Remote-local DAB regression on standalone local DBs",
+    "command": "REMOTE_SANDBOX_HOST=127.0.0.1 REMOTE_SANDBOX_PYTHON=/usr/bin/python3 python3 run_benchmark_query.py --dataset yelp --query-id 4 --validate-answer",
+    "dataset": "yelp",
+    "query_id": "4",
+    "score": "pass",
+    "is_valid": true,
+    "tool_trace": [
+      "call:remote_sandbox_local_exec",
+      "call:duckdb_execute_query",
+      "call:mongodb_find_businesses"
+    ],
+    "notes": "Final answer Restaurant, 3.63; validator reason 'Found: Restaurant, 3.63'."
+  },
+  {
+    "date": "2026-04-17",
+    "run_type": "Remote-local DAB regression on standalone local DBs",
+    "command": "REMOTE_SANDBOX_HOST=127.0.0.1 REMOTE_SANDBOX_PYTHON=/usr/bin/python3 python3 run_benchmark_query.py --dataset yelp --query-id 5 --validate-answer",
+    "dataset": "yelp",
+    "query_id": "5",
+    "score": "pass",
+    "is_valid": true,
+    "tool_trace": [
+      "call:remote_sandbox_local_exec",
+      "call:duckdb_execute_query",
+      "call:mongodb_find_businesses"
+    ],
+    "notes": "Final answer PA, 3.48; validator reason 'Found: name='PA', value≈3.48'."
+  },
+  {
+    "date": "2026-04-17",
+    "run_type": "Remote-local DAB regression on standalone local DBs",
+    "command": "REMOTE_SANDBOX_HOST=127.0.0.1 REMOTE_SANDBOX_PYTHON=/usr/bin/python3 python3 run_benchmark_query.py --dataset yelp --query-id 6 --validate-answer",
+    "dataset": "yelp",
+    "query_id": "6",
+    "score": "pass",
+    "is_valid": true,
+    "tool_trace": [
+      "call:remote_sandbox_local_exec",
+      "call:duckdb_execute_query",
+      "call:mongodb_find_businesses"
+    ],
+    "notes": "Final answer Coffee House Too Cafe with required categories; validator reason 'Name and all categories are present.'."
+  },
+  {
+    "date": "2026-04-17",
+    "run_type": "Remote-local DAB regression on standalone local DBs",
+    "command": "REMOTE_SANDBOX_HOST=127.0.0.1 REMOTE_SANDBOX_PYTHON=/usr/bin/python3 python3 run_benchmark_query.py --dataset yelp --query-id 7 --validate-answer",
+    "dataset": "yelp",
+    "query_id": "7",
+    "score": "pass",
+    "is_valid": true,
+    "tool_trace": [
+      "call:remote_sandbox_local_exec",
+      "call:duckdb_execute_query",
+      "call:mongodb_find_businesses"
+    ],
+    "notes": "Final answer Restaurants, Food, American (New), Shopping, Breakfast & Brunch; validator reason 'All categories are present.'."
+  },
+  {
+    "date": "2026-04-17",
+    "run_type": "Single-query smoke run with longer internal loop",
+    "command": "REMOTE_SANDBOX_HOST=127.0.0.1 REMOTE_SANDBOX_PYTHON=/usr/bin/python3 python3 run_agent.py --dataset yelp --query_id 1 --llm google/gemini-2.0-flash-001 --iterations 20 --root_name q1_iter20",
+    "dataset": "yelp",
+    "query_id": "1",
+    "iterations": 20,
+    "score": "pass",
+    "is_valid": true,
+    "tool_trace": [
+      "call:remote_sandbox_local_exec",
+      "call:duckdb_execute_query",
+      "call:mongodb_find_businesses"
+    ],
+    "notes": "Final answer 3.55; matched the benchmark-accepted Indianapolis average. This was a single-query agent smoke run rather than a separate DAB validator invocation."
   }
 ]

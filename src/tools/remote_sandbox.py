@@ -52,6 +52,23 @@ class RemoteSandboxClient:
 
     def run_command(self, command: str, cwd: str | None = None) -> dict[str, Any]:
         remote_command = self.build_remote_command(command, cwd=cwd)
+        if self._is_local_host():
+            result = subprocess.run(
+                remote_command,
+                capture_output=True,
+                text=True,
+                cwd=cwd or self.config.dab_path,
+                shell=True,
+            )
+            return {
+                "ok": result.returncode == 0,
+                "command": command,
+                "cwd": cwd or self.config.dab_path,
+                "stdout": result.stdout.strip(),
+                "stderr": result.stderr.strip(),
+                "returncode": result.returncode,
+                "host": self.config.host,
+            }
         ssh_cmd = [
             "ssh",
             *self.config.ssh_options,
@@ -68,6 +85,9 @@ class RemoteSandboxClient:
             "returncode": result.returncode,
             "host": self.config.host,
         }
+
+    def _is_local_host(self) -> bool:
+        return self.config.host in {"localhost", "127.0.0.1", "::1"}
 
     def list_repo_root(self) -> dict[str, Any]:
         return self.run_command("pwd && ls -1")
