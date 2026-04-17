@@ -1,4 +1,6 @@
 .env
+.env.*
+*.env
 .oracle_forge/
 venv/
 __pycache__/
