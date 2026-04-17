@@ -66,6 +66,38 @@
 
 ---
 
+## Dataset-Specific Solver Missing
+
+**16.** "Which decade of publication has the highest average rating among decades with at least 10 distinct books?" (bookreview q1)
+→ ExecutionRouter only called `list_db` and stopped. No `query_db` was ever issued. Failure class: `benchmark_answer_missing`.
+→ **Correct:** Every dataset needs a dedicated solver in `_run_benchmark_strategy`. Check `dataset_key` first; if no solver exists, the generic path only discovers schema and will never produce a `benchmark_answer` artifact.
+
+---
+
+## Planner Over-Triggers Text Extraction
+
+**18.** "Which books have received an average rating of at least 4.5 based on reviews from 2020 onwards?" (bookreview q3)
+→ Planner set `needs_text_extraction = True` because "reviews" appeared in the question. Validator then blocked the answer with `extraction_failure`.
+→ **Correct:** "review" alone is not an extraction signal. Only flag `needs_text_extraction` when the question asks for sentiment, classification, or free-text analysis — not when "review" is used as a data source name or filter criterion.
+
+---
+
+## LLM Synthesis Cannot Join Cross-DB Results Without Normalization
+
+**19.** "Which Children's Books have avg rating ≥ 4.5 from 2020 reviews?" (bookreview q3)
+→ `_solve_with_llm` passed two disconnected lists to `synthesize_answer`: books with `bookid_N` and purchase ratings with `purchaseid_N`. LLM guessed the join incorrectly — included false positives, missed correct books.
+→ **Correct:** Apply `_try_python_join` before synthesis. It detects `prefix_N` ID patterns across result sets, normalizes both sides to numeric suffix, and inner-joins in Python. Pass the merged rows to the LLM so it only needs to filter — not join.
+
+---
+
+## Cross-Dataset Join Key Prefix Mismatch
+
+**17.** "Join books_info to review on book_id = purchase_id." (bookreview q1)
+→ `books_info.book_id` = `"bookid_8"` but `review.purchase_id` = `"purchaseid_8"`. Direct string match returns 0 rows.
+→ **Correct:** Normalize both sides to their numeric suffix using `_extract_numeric_id(id)` (strips `_N` suffix, returns `"8"`). Never assume two foreign-key columns share the same string prefix across databases.
+
+---
+
 ## Unstructured Text Extraction Failure
 
 **13.** "Count users complaining about missing packages."

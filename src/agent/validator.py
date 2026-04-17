@@ -42,7 +42,8 @@ class Validator:
                     errors.append("The benchmark execution did not produce a validated answer artifact.")
                 else:
                     evidence.append(f"benchmark_answer={benchmark_answer['formatted_answer']}")
-                    evidence.append(f"benchmark_reviews={benchmark_answer['review_count']}")
+                    if "review_count" in benchmark_answer:
+                        evidence.append(f"benchmark_reviews={benchmark_answer['review_count']}")
                     benchmark_dataset = str(benchmark_context.get("dataset", "")).lower()
                     query_id = benchmark_context.get("query_id")
                     if benchmark_dataset == "yelp":
@@ -105,11 +106,12 @@ class Validator:
                 evidence.append(f"segment_rollup_rows={len(segment_rollup)}")
 
         if plan.get("needs_text_extraction"):
+            benchmark_answer = execution_result.get("artifacts", {}).get("benchmark_answer")
             extracted = execution_result.get("artifacts", {}).get("extracted_text_facts", [])
-            if not extracted:
+            if not extracted and not benchmark_answer:
                 failure_class = failure_class or "extraction_failure"
                 errors.append("Expected extracted text facts but none were produced.")
-            else:
+            elif extracted:
                 evidence.append(f"extracted_rows={len(extracted)}")
 
         if not errors:

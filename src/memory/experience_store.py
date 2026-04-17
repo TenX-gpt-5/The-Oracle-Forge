@@ -13,8 +13,8 @@ from pathlib import Path
 
 class ExperienceStore:
     def __init__(self, db_path: str | None = None):
-        root = Path(__file__).resolve().parents[2]
-        self.db_path = str(root / ".oracle_forge" / "oracle_forge_experiences.db") if db_path is None else db_path
+        root = Path.home() / ".oracle_forge"
+        self.db_path = str(root / "oracle_forge_experiences.db") if db_path is None else db_path
         Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
 

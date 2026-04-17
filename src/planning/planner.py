@@ -57,7 +57,11 @@ class Planner:
             join_keys.append("customer_id")
 
         needs_text_extraction = any(
-            token in question for token in ("note", "notes", "review", "reviews", "comment", "comments", "sentiment")
+            token in question
+            for token in ("note", "notes", "sentiment", "extract", "mentioned", "complain", "complaint", "feedback")
+        ) or (
+            any(token in question for token in ("review", "reviews", "comment", "comments"))
+            and any(token in question for token in ("sentiment", "extract", "classify", "analyze", "text", "content", "mention"))
         )
 
         needs_domain_resolution: list[str] = []

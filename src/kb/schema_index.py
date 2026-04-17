@@ -9,6 +9,54 @@ from __future__ import annotations
 
 class SchemaIndex:
     def __init__(self):
+        self.dataset_schemas = {
+            "bookreview": {
+                "books_database": {
+                    "db_type": "postgres",
+                    "db_name": "bookreview_db",
+                    "tables": {
+                        "books_info": {
+                            "columns": [
+                                "title", "subtitle", "author", "rating_number",
+                                "features", "description", "price", "store",
+                                "categories", "details", "book_id",
+                            ],
+                            "primary_key": "book_id",
+                        }
+                    },
+                    "clues": [
+                        "book_id format: 'bookid_N' — normalize to numeric suffix before joining.",
+                        "'description', 'categories', 'features' are stored as stringified list/dict — parse before use.",
+                        "Publication year is embedded in natural-language 'details' field.",
+                        "Language is mentioned in the 'details' field (e.g., 'written in English').",
+                    ],
+                },
+                "review_database": {
+                    "db_type": "sqlite",
+                    "db_path": "query_dataset/review_query.db",
+                    "tables": {
+                        "review": {
+                            "columns": [
+                                "rating", "title", "text", "purchase_id",
+                                "review_time", "helpful_vote", "verified_purchase",
+                            ],
+                            "primary_key": "purchase_id",
+                        }
+                    },
+                    "clues": [
+                        "purchase_id format: 'purchaseid_N' — normalize to numeric suffix to join with books_info.book_id.",
+                        "rating is 1.0–5.0 scale (float).",
+                        "verified_purchase is a boolean.",
+                    ],
+                },
+                "_hints": [
+                    "Join books_info.book_id ↔ review.purchase_id by stripping prefix and matching numeric suffix.",
+                    "Use categories field in books_info to filter by genre (e.g., 'Literature & Fiction').",
+                    "Use details field to extract publication decade for temporal aggregation.",
+                ],
+            },
+        }
+
         self.schemas = {
             "postgres": {
                 "tables": {
@@ -60,6 +108,9 @@ class SchemaIndex:
 
     def get_schema_for_db(self, db_name: str) -> dict:
         return self.schemas.get(db_name, {"tables": {}, "clues": []})
+
+    def get_schema_for_dataset(self, dataset: str) -> dict:
+        return self.dataset_schemas.get(dataset.lower(), {})
 
     def list_sources(self) -> list[str]:
         return list(self.schemas.keys())

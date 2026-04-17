@@ -14,6 +14,7 @@ from collections import defaultdict
 from typing import Any
 
 from src.dab.remote_dab_adapter import RemoteDABAdapter
+from src.tools.llm_client import LLMClient
 from src.tools.remote_sandbox import RemoteSandboxClient, RemoteSandboxConfig
 from src.tools.toolbox_client import ToolboxClient
 from src.tools.transform_tools import aggregate_by_field, extract_rows_with_facts, join_on_normalized_key, run_python_transform
@@ -77,6 +78,7 @@ class ExecutionRouter:
         self.remote_sandbox = RemoteSandboxClient(remote_config)
         self.remote_dab = RemoteDABAdapter(self.remote_sandbox)
         self.toolbox = ToolboxClient()
+        self.llm = LLMClient()
 
     def execute_plan(
         self,
@@ -103,6 +105,7 @@ class ExecutionRouter:
             return self._execute_remote_dab(
                 question=question,
                 plan=plan,
+                context_payload=context_payload,
                 benchmark_context=benchmark_context,
                 tool_calls=tool_calls,
             )
@@ -216,6 +219,7 @@ class ExecutionRouter:
         self,
         question: str,
         plan: dict[str, Any],
+        context_payload: dict[str, Any],
         benchmark_context: dict[str, Any],
         tool_calls: list[dict[str, Any]],
     ) -> dict[str, Any]:
@@ -252,6 +256,8 @@ class ExecutionRouter:
         benchmark_strategy = self._run_benchmark_strategy(
             dataset=dataset,
             question=question,
+            context_payload=context_payload,
+            benchmark_context=benchmark_context,
             tool_calls=tool_calls,
         )
         if benchmark_strategy:
@@ -291,13 +297,30 @@ class ExecutionRouter:
         self,
         dataset: str,
         question: str,
+        context_payload: dict[str, Any],
+        benchmark_context: dict[str, Any],
         tool_calls: list[dict[str, Any]],
     ) -> dict[str, Any] | None:
         dataset_key = dataset.lower()
         question_lower = question.lower()
 
+        if dataset_key == "bookreview":
+            if "decade" in question_lower and "publication" in question_lower:
+                return self._solve_bookreview_top_decade_by_rating(tool_calls=tool_calls)
+            return self._solve_with_llm(
+                question=question,
+                context_payload=context_payload,
+                benchmark_context=benchmark_context,
+                tool_calls=tool_calls,
+            )
+
         if dataset_key != "yelp":
-            return None
+            return self._solve_with_llm(
+                question=question,
+                context_payload=context_payload,
+                benchmark_context=benchmark_context,
+                tool_calls=tool_calls,
+            )
 
         if "average rating" in question_lower and "located in" in question_lower:
             return self._solve_yelp_average_rating(question=question, tool_calls=tool_calls)
@@ -852,6 +875,204 @@ class ExecutionRouter:
             },
             "errors": [],
         }
+
+    def _solve_with_llm(
+        self,
+        question: str,
+        context_payload: dict[str, Any],
+        benchmark_context: dict[str, Any],
+        tool_calls: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        dataset = benchmark_context.get("dataset", "")
+        db_clients: dict[str, Any] = benchmark_context.get("db_clients", {})
+        db_description: str = benchmark_context.get("db_description", "")
+        schema_context: dict[str, Any] = context_payload.get("schemas", {})
+
+        queries = self.llm.generate_queries(
+            question=question,
+            db_description=db_description,
+            schema_context=schema_context,
+            db_clients=db_clients,
+        )
+
+        if not queries:
+            return self._error_result(
+                message="LLM did not return any queries for this question.",
+                source_results={},
+            )
+
+        query_results: dict[str, Any] = {}
+        for db_name, query in queries.items():
+            result = self.remote_dab.query_db(dataset=dataset, db_name=db_name, query=query)
+            tool_calls.append({
+                "tool": "query_db",
+                "dataset": dataset,
+                "db_name": db_name,
+                "query": query,
+                "mode": "remote-dab-llm",
+            })
+            query_results[db_name] = result
+            if not result.get("success", False):
+                return self._error_result(
+                    message=f"query_db failed for {db_name}: {result.get('error', 'unknown')}",
+                    source_results={f"{db_name}_query": result},
+                )
+
+        raw_results = {db: r.get("result", []) for db, r in query_results.items()}
+        joined = self._try_python_join(raw_results)
+        synthesis_input = {"joined": joined} if joined else raw_results
+
+        answer = self.llm.synthesize_answer(
+            question=question,
+            query_results=synthesis_input,
+            db_description=db_description,
+        )
+
+        return {
+            "artifacts": {
+                "benchmark_answer": {
+                    "dataset": dataset,
+                    "answer_kind": "llm_synthesized",
+                    "formatted_answer": answer,
+                    "numeric_answer": None,
+                },
+            },
+            "source_results": {f"{db}_query": r for db, r in query_results.items()},
+            "errors": [],
+        }
+
+    def _try_python_join(
+        self,
+        raw_results: dict[str, list[dict[str, Any]]],
+    ) -> list[dict[str, Any]] | None:
+        """
+        Detect and apply a cross-DB Python join when both result sets contain
+        fields using the prefixed-integer ID format (e.g. bookid_N / purchaseid_N).
+        Normalizes both sides to their numeric suffix before joining.
+        """
+        if len(raw_results) < 2:
+            return None
+
+        id_pattern = re.compile(r"^[a-z]+_(\d+)$")
+
+        # Find (db, field) pairs whose first-row value matches the pattern
+        candidates: list[tuple[str, str]] = []
+        for db_name, rows in raw_results.items():
+            if not rows:
+                continue
+            for field, value in rows[0].items():
+                if isinstance(value, str) and id_pattern.match(value):
+                    candidates.append((db_name, field))
+                    break
+
+        if len(candidates) < 2:
+            return None
+
+        left_db, left_key = candidates[0]
+        right_db, right_key = candidates[1]
+
+        # Build right-side lookup keyed by numeric suffix
+        right_lookup: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        for row in raw_results[right_db]:
+            num = self._extract_numeric_id(str(row.get(right_key, "")))
+            right_lookup[num].append(row)
+
+        joined: list[dict[str, Any]] = []
+        for row in raw_results[left_db]:
+            num = self._extract_numeric_id(str(row.get(left_key, "")))
+            for right_row in right_lookup.get(num, []):
+                joined.append({**row, **right_row})
+
+        return joined if joined else None
+
+    def _solve_bookreview_top_decade_by_rating(self, tool_calls: list[dict[str, Any]]) -> dict[str, Any]:
+        books_query = "SELECT book_id, details FROM books_info;"
+        books_result = self.remote_dab.query_db("bookreview", "books_database", books_query)
+        tool_calls.append({"tool": "query_db", "dataset": "bookreview", "db_name": "books_database", "query": books_query, "mode": "remote-dab"})
+        if not books_result.get("success", False):
+            return self._error_result(
+                message="Failed to query books_info from books_database.",
+                source_results={"books_database_query": books_result},
+            )
+
+        review_query = "SELECT purchase_id, rating FROM review;"
+        review_result = self.remote_dab.query_db("bookreview", "review_database", review_query)
+        tool_calls.append({"tool": "query_db", "dataset": "bookreview", "db_name": "review_database", "query": review_query, "mode": "remote-dab"})
+        if not review_result.get("success", False):
+            return self._error_result(
+                message="Failed to query review from review_database.",
+                source_results={"books_database_query": books_result, "review_database_query": review_result},
+            )
+
+        book_decade: dict[str, str] = {}
+        for row in books_result.get("result", []):
+            book_id = str(row.get("book_id", ""))
+            year = self._extract_publication_year(str(row.get("details", "")))
+            if book_id and year:
+                numeric_id = self._extract_numeric_id(book_id)
+                book_decade[numeric_id] = f"{(year // 10) * 10}s"
+
+        decade_books: dict[str, set[str]] = defaultdict(set)
+        decade_ratings: dict[str, list[float]] = defaultdict(list)
+        for row in review_result.get("result", []):
+            purchase_id = str(row.get("purchase_id", ""))
+            rating = self._to_float(row.get("rating"))
+            if not purchase_id or rating is None:
+                continue
+            numeric_id = self._extract_numeric_id(purchase_id)
+            decade = book_decade.get(numeric_id)
+            if not decade:
+                continue
+            decade_books[decade].add(numeric_id)
+            decade_ratings[decade].append(rating)
+
+        qualified = {
+            decade: sum(ratings) / len(ratings)
+            for decade, ratings in decade_ratings.items()
+            if len(decade_books[decade]) >= 10
+        }
+
+        if not qualified:
+            return self._error_result(
+                message="No decade had at least 10 distinct rated books.",
+                source_results={"books_database_query": books_result, "review_database_query": review_result},
+            )
+
+        best_decade = max(qualified, key=lambda d: (qualified[d], d))
+        avg_rating = qualified[best_decade]
+
+        return {
+            "artifacts": {
+                "benchmark_answer": {
+                    "dataset": "bookreview",
+                    "answer_kind": "decade_average_rating",
+                    "decade": best_decade,
+                    "numeric_answer": round(avg_rating, 4),
+                    "formatted_answer": best_decade,
+                    "distinct_books": len(decade_books[best_decade]),
+                },
+            },
+            "source_results": {
+                "books_database_query": books_result,
+                "review_database_query": review_result,
+            },
+            "errors": [],
+        }
+
+    def _extract_numeric_id(self, id_value: str) -> str:
+        match = re.search(r"_(\d+)$", id_value)
+        return match.group(1) if match else id_value
+
+    def _extract_publication_year(self, details: str) -> int | None:
+        pub_match = re.search(r"[Pp]ublication\s+date['\"]?\s*:\s*['\"]?([^,'\"}\]]+)", details)
+        if pub_match:
+            year_match = re.search(r"\b(19|20)\d{2}\b", pub_match.group(1))
+            if year_match:
+                return int(year_match.group(0))
+        year_match = re.search(r"\b(19|20)\d{2}\b", details)
+        if year_match:
+            return int(year_match.group(0))
+        return None
 
     def _fetch_yelp_business_rows(
         self,

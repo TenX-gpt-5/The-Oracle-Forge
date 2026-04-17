@@ -65,6 +65,16 @@ class AnswerSynthesizer:
                     f"{business_name} received the highest average rating in that period. "
                     f"Categories: {', '.join(categories)}."
                 )
+            if answer_kind == "llm_synthesized":
+                return str(benchmark_answer.get("formatted_answer", ""))
+            if answer_kind == "decade_average_rating":
+                decade = benchmark_answer.get("decade", "Unknown decade")
+                distinct_books = benchmark_answer.get("distinct_books", 0)
+                return (
+                    f"The {decade} has the highest average rating among decades with at least "
+                    f"10 distinct rated books, based on {distinct_books} books with an average "
+                    f"rating of {benchmark_answer['numeric_answer']:.4f}."
+                )
             if answer_kind == "top_categories":
                 categories = [item.get("category", "") for item in benchmark_answer.get("top_categories", [])]
                 return (
