@@ -1,5 +1,9 @@
 # DAB Evaluation Flow
 
+**Injection Test Evidence:**
+*   **Test Query:** "What is Oracle Forge's strongest verified DAB evaluation path right now, and how does it differ from the full benchmark target?"
+*   **Expected Answer:** "The strongest verified path is the Yelp query 1 smoke test with remote validation. It proves a real benchmark path works, but it is not yet the full multi-query benchmark submission flow."
+
 Oracle Forge currently uses a two-level evaluation flow.
 
 Level 1 is the local Oracle Forge smoke-test path. The strongest verified command today is:

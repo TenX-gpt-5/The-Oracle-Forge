@@ -1,5 +1,9 @@
 # DAB Requirements
 
+**Injection Test Evidence:**
+*   **Test Query:** "What are the four main DAB requirement classes Oracle Forge must handle before it can be considered benchmark-credible?"
+*   **Expected Answer:** "Multi-database integration, ill-formatted join keys, unstructured text transformation, and domain knowledge."
+
 DataAgentBench tests whether an agent can answer realistic enterprise data questions across messy, mixed database systems. The hard part is not only query generation. The hard part is choosing the right source, resolving inconsistent identifiers, extracting facts from free text, and applying definitions that are not obvious from schema alone.
 
 Oracle Forge should treat four requirements as first-class runtime problems:

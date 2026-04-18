@@ -1,5 +1,9 @@
 # DataAgentBench Evaluation & Scoring (pass@1)
 
+**Injection Test Evidence:**
+*   **Test Query:** "How many trials per query does DAB require and what scoring metric is used?"
+*   **Expected Answer:** "DAB requires n ≥ 50 trials per query and uses pass@1 scoring — only the first final answer per trial is graded."
+
 Here is how DataAgentBench evaluates an agent.
 
 **Scoring Requirements:**
