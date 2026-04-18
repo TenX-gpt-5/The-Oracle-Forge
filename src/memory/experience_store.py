@@ -40,6 +40,11 @@ class ExperienceStore:
             conn.commit()
 
     def log_experience(self, turn_data: dict) -> int:
+        def _json_text(value: object) -> str:
+            if isinstance(value, str):
+                return value
+            return json.dumps(value, default=str)
+
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute(
                 """
@@ -57,13 +62,13 @@ class ExperienceStore:
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    turn_data.get("question", ""),
-                    json.dumps(turn_data.get("plan", {})),
-                    json.dumps(turn_data.get("retrieved_context", {})),
-                    json.dumps(turn_data.get("tool_calls", [])),
-                    json.dumps(turn_data.get("trace", [])),
-                    json.dumps(turn_data.get("validation", {})),
-                    turn_data.get("final_answer", ""),
+                    str(turn_data.get("question", "")),
+                    _json_text(turn_data.get("plan", {})),
+                    _json_text(turn_data.get("retrieved_context", {})),
+                    _json_text(turn_data.get("tool_calls", [])),
+                    _json_text(turn_data.get("trace", [])),
+                    _json_text(turn_data.get("validation", {})),
+                    str(turn_data.get("final_answer", "")),
                     int(turn_data.get("retries", 0)),
                     bool(turn_data.get("success", True)),
                 ),

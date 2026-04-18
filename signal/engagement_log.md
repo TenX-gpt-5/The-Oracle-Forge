@@ -90,6 +90,28 @@ Topic: Daily update — shipped/stuck/next
 Response: Internal only
 Follow-up needed: None
 
+## 2026-04-18
+Platform: Slack (internal)
+Link: #oracle-forge-gpt5
+Topic: Daily update — Yelp 50-trial regression sweep completed
+Update:
+- Shipped: remote-local DAB benchmark sweep passed for Yelp q1 through q7 at 50 trials each; local copies of the result JSONs and remote execution logs were synced back into the workspace
+- Stuck: none on the Yelp path; remaining work is to repeat the same evidence capture for the other dataset families
+- Next: run the remaining one-query smoke tests per dataset family and keep the score log / KB changelogs in sync
+Response: Internal only
+Follow-up needed: None
+
+## 2026-04-18
+Platform: Slack (internal)
+Link: #oracle-forge-gpt5
+Topic: Daily update — CRM q8 through q13 verified live
+Update:
+- Shipped: CRM q8 through q13 were re-verified on the remote-local path after the KB-first cleanup; the score log and KB changelogs were updated to reflect the full q1 through q13 family completion
+- Stuck: none on the CRM path; remaining documentation work is to keep the probe library and submission notes aligned with the same live outputs
+- Next: continue with any remaining dataset families and keep the evidence trail consistent across probes, KB, and evaluation logs
+Response: Internal only
+Follow-up needed: None
+
 
 ## 2026-04-14
 Platform: LinkedIn

@@ -1,0 +1,32 @@
+{
+  "dataset": "github_repos",
+  "rules": [
+    {
+      "rule_id": "github_q2_swift_repo",
+      "question_contains_all": ["swift language", "most frequently copied", "repository"],
+      "reasoning_hint": "Use the Swift file-copy frequency signal and identify the repository whose copied file is uniquely determined by file id.",
+      "output_expectation": "Return the repository name only.",
+      "evidence": [
+        "Validated live GitHub Repos benchmark result for the Swift repository identification query."
+      ]
+    },
+    {
+      "rule_id": "github_q3_shell_apache_commit_count",
+      "question_contains_all": ["shell programming language", "apache-2.0", "commit messages"],
+      "reasoning_hint": "Count commit messages in repositories that meet the language and license constraints and apply the message filters.",
+      "output_expectation": "Return only an integer count.",
+      "evidence": [
+        "Validated live GitHub Repos benchmark result for the Shell+Apache commit-message count query."
+      ]
+    },
+    {
+      "rule_id": "github_q4_top_non_python_repos",
+      "question_contains_all": ["top five", "not python", "commits"],
+      "reasoning_hint": "Rank repositories by commit count after filtering to non-Python main language, then return the top five repository names.",
+      "output_expectation": "Return a list of five repository names.",
+      "evidence": [
+        "Validated live GitHub Repos benchmark result for the top-5 non-Python repository query."
+      ]
+    }
+  ]
+}

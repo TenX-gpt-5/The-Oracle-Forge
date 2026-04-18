@@ -65,6 +65,16 @@ class AnswerSynthesizer:
                     f"{business_name} received the highest average rating in that period. "
                     f"Categories: {', '.join(categories)}."
                 )
+            if answer_kind == "repo_name":
+                repo_name = benchmark_answer.get("formatted_answer", "Unknown repository")
+                return f"The repository is {repo_name}."
+            if answer_kind == "repo_name_list":
+                return str(
+                    benchmark_answer.get(
+                        "formatted_answer",
+                        "Top repositories available in benchmark answer.",
+                    )
+                )
             if answer_kind == "top_categories":
                 categories = [item.get("category", "") for item in benchmark_answer.get("top_categories", [])]
                 return (

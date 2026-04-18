@@ -251,10 +251,24 @@ class Orchestrator:
             "retries": state["retries"],
             "success": validation["status"] == "passed",
         }
-        experience_id = self.logger.log_trace(trace_record)
+        benchmark_mode = bool(state["benchmark_context"].get("dataset"))
+        if benchmark_mode:
+            experience_id = -1
+            promoted_memories = []
+        else:
+            try:
+                experience_id = self.logger.log_trace(trace_record)
+            except Exception as exc:  # pragma: no cover - persistence should not block benchmark runs
+                experience_id = -1
+                self._append_trace(
+                    trace_record["trace"],
+                    "trace_logger",
+                    "log_trace_failed",
+                    {"error": str(exc)},
+                )
 
-        candidate_memories = self.consolidator.consolidate_experiences([trace_record])
-        promoted_memories = self.review_gate.review_and_promote(candidate_memories)
+            candidate_memories = self.consolidator.consolidate_experiences([trace_record])
+            promoted_memories = self.review_gate.review_and_promote(candidate_memories)
 
         return {
             "question": user_question,

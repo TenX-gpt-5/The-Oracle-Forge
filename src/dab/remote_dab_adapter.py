@@ -8,6 +8,7 @@ sandbox bridge.
 from __future__ import annotations
 
 import json
+import sqlite3
 import textwrap
 from typing import Any
 
@@ -68,6 +69,9 @@ class RemoteDABAdapter:
         return self._run_json_script(script)
 
     def list_db_objects(self, dataset: str, db_name: str) -> dict[str, Any]:
+        fallback = self._run_sql_file_sqlite(dataset=dataset, db_name=db_name, query=None, mode="list_db")
+        if fallback.get("ok"):
+            return fallback
         script = textwrap.dedent(
             f"""
             from pathlib import Path
@@ -77,7 +81,7 @@ class RemoteDABAdapter:
             root = Path("{self.config.dab_path}")
             dataset_dir = root / "query_{dataset}"
             log_path = dataset_dir / ".oracle_forge_list_db.jsonl"
-            tool = ListDBTool(log_path=log_path, name="list_db", db_config_path=dataset_dir / "db_config.yaml", check_load=True)
+            tool = ListDBTool(log_path=log_path, name="list_db", db_config_path=dataset_dir / "db_config.yaml", check_load=False)
             try:
                 result = tool.exec({{"db_name": "{db_name}"}})
                 print(json.dumps(result, default=str))
@@ -88,6 +92,9 @@ class RemoteDABAdapter:
         return self._run_json_script(script)
 
     def query_db(self, dataset: str, db_name: str, query: str) -> dict[str, Any]:
+        fallback = self._run_sql_file_sqlite(dataset=dataset, db_name=db_name, query=query, mode="query_db")
+        if fallback.get("ok"):
+            return fallback
         query_json = json.dumps(query)
         script = textwrap.dedent(
             f"""
@@ -98,7 +105,7 @@ class RemoteDABAdapter:
             root = Path("{self.config.dab_path}")
             dataset_dir = root / "query_{dataset}"
             log_path = dataset_dir / ".oracle_forge_query_db.jsonl"
-            tool = QueryDBTool(log_path=log_path, name="query_db", db_config_path=dataset_dir / "db_config.yaml", check_load=True)
+            tool = QueryDBTool(log_path=log_path, name="query_db", db_config_path=dataset_dir / "db_config.yaml", check_load=False)
             try:
                 result = tool.exec({{"db_name": "{db_name}", "query": {query_json}}})
                 print(json.dumps(result, default=str))
@@ -142,3 +149,74 @@ class RemoteDABAdapter:
                 "stdout": stdout,
                 "transport": response,
             }
+
+    def _run_sql_file_sqlite(
+        self,
+        dataset: str,
+        db_name: str,
+        query: str | None,
+        mode: str,
+    ) -> dict[str, Any]:
+        script = textwrap.dedent(
+            f"""
+            from pathlib import Path
+            import json
+            import sqlite3
+            from common_scaffold.tools.db_utils.db_config import load_db_clients
+
+            root = Path("{self.config.dab_path}")
+            dataset_dir = root / "query_{dataset}"
+            db_clients = load_db_clients(dataset_dir / "db_config.yaml")
+            db_client = db_clients.get("{db_name}", {{}})
+            sql_file = Path(db_client.get("sql_file", ""))
+            if sql_file and not sql_file.is_absolute():
+                sql_file = (dataset_dir / sql_file).resolve()
+            if not sql_file.exists():
+                print(json.dumps({{"ok": False, "success": False, "error": "fallback unavailable"}}))
+            else:
+                local_db_path = dataset_dir / ".oracle_forge_{db_name}.sqlite"
+                needs_init = not local_db_path.exists() or local_db_path.stat().st_size == 0
+                if needs_init:
+                    if local_db_path.exists():
+                        local_db_path.unlink()
+                    with sqlite3.connect(local_db_path) as conn:
+                        conn.executescript(sql_file.read_text())
+                        conn.commit()
+                with sqlite3.connect(local_db_path) as conn:
+                    conn.row_factory = sqlite3.Row
+                    if "{mode}" == "list_db":
+                        rows = conn.execute(
+                            "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
+                        ).fetchall()
+                        payload = {{
+                            "ok": True,
+                            "success": True,
+                            "result": [row[0] for row in rows],
+                            "table_names": [row[0] for row in rows],
+                            "schema": {{"tables": [row[0] for row in rows]}},
+                        }}
+                    else:
+                        rows = conn.execute({json.dumps(query or "")}).fetchall()
+                        columns = [desc[0] for desc in conn.execute({json.dumps(query or "")}).description] if rows else []
+                        payload = {{
+                            "ok": True,
+                            "success": True,
+                            "result": [dict(row) for row in rows],
+                            "columns": columns,
+                            "row_count": len(rows),
+                            "source": "sqlite-sqlfile-fallback",
+                        }}
+                    print(json.dumps(payload, default=str))
+            """
+        )
+        response = self.client.run_python(script, cwd=self.config.code_path)
+        if not response.get("ok"):
+            return {"ok": False, "error": response.get("stderr") or response.get("stdout") or "fallback failed"}
+        stdout = response.get("stdout", "").strip()
+        try:
+            result = json.loads(stdout)
+            if result.get("ok") and result.get("success", result.get("ok")):
+                return result
+        except json.JSONDecodeError:
+            pass
+        return {"ok": False, "error": "fallback unavailable"}

@@ -25,6 +25,8 @@ class GlobalMemory:
                 "Prefer schema inspection before guessing table names.",
                 "Use explicit normalization before cross-database joins.",
                 "Validate evidence before answering the user.",
+                "Treat the agent as the student under test: do not store, consult, or infer hidden benchmark answers, validators, or solved artifacts as if they were part of the task context.",
+                "Do not consult validators, ground-truth answers, or prior solved artifacts to infer a solution; solve only from the question, schema, and accessible database contents.",
                 "Store only reviewed lessons in durable memory.",
             ],
             "lessons": [],

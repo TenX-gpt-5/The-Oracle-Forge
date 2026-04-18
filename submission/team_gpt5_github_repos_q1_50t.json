@@ -1,0 +1,302 @@
+[
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 0,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 1,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 2,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 3,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 4,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 5,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 6,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 7,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 8,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 9,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 10,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 11,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 12,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 13,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 14,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 15,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 16,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 17,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 18,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 19,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 20,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 21,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 22,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 23,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 24,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 25,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 26,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 27,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 28,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 29,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 30,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 31,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 32,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 33,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 34,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 35,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 36,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 37,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 38,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 39,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 40,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 41,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 42,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 43,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 44,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 45,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 46,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 47,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 48,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  },
+  {
+    "dataset": "GITHUB_REPOS",
+    "query": "1",
+    "run": 49,
+    "answer": "I could not produce a fully validated answer. Failure class: benchmark_answer_missing. Validation errors: The benchmark execution did not produce a validated answer artifact."
+  }
+]

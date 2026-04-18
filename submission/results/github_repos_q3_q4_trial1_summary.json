@@ -1,0 +1,25 @@
+{
+  "benchmark": "DataAgentBench GitHub Repos smoke",
+  "dataset": "GITHUB_REPOS",
+  "trials_per_query": 1,
+  "queries": [
+    {
+      "query_id": 3,
+      "result_file": "results/gpt5_github_repos_q3_trial1.json",
+      "total_queries": 1,
+      "total_trials": 1,
+      "pass_at_1": 1.0,
+      "passed_queries": 1,
+      "final_answer": "1077"
+    },
+    {
+      "query_id": 4,
+      "result_file": "results/gpt5_github_repos_q4_trial1.json",
+      "total_queries": 1,
+      "total_trials": 1,
+      "pass_at_1": 1.0,
+      "passed_queries": 1,
+      "final_answer": "Top five repositories by commit count among non-Python main-language GitHub repos are: apple/swift, twbs/bootstrap, Microsoft/vscode, facebook/react, tensorflow/tensorflow."
+    }
+  ]
+}

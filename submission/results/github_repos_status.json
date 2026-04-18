@@ -1,0 +1,13 @@
+{
+  "benchmark": "DataAgentBench GitHub Repos strict-mode status",
+  "dataset": "GITHUB_REPOS",
+  "confirmed_queries": [2, 3, 4],
+  "pending_queries": [1],
+  "status": "3/4 confirmed",
+  "notes": [
+    "Confirmed queries are backed by remote benchmark evidence.",
+    "Ground-truth answer files were not used for solving during the strict-mode rerun.",
+    "Query 1 is still pending a strict rerun.",
+    "The q2-q4 50-trial rerun was interrupted by SSH connectivity loss and did not produce a result artifact."
+  ]
+}
