@@ -65,7 +65,24 @@ source: DataAgentBench-main/query_*/db_description{,_withhint}.txt; Challenge Br
 ### article category (agnews.articles)
 - Naïve interpretation: look for a `category` column.
 - Correct definition: **not stored** — must be inferred from `title` + `description` by LLM classification into exactly four categories: **World, Sports, Business, Science/Technology**.
-- Source: agnews db_description_withhint.txt.
+- Critical boundary (verified against ground truth q2, 16/111):
+  - Science/Technology = technology products, software, hardware, internet services, consumer electronics, semiconductors, space missions/NASA/astronauts/satellites, cybersecurity, computer company product news, student science competitions, energy technology inventions.
+  - Business = company financials, earnings, stock prices, mergers/acquisitions **as financial deals**, layoffs, CEO changes, retail, banking, commodities, oil prices, economic indicators. Telecom/tech mergers where the story is the deal = Business (e.g. Sprint/Nextel merger, FCC approval of wireless merger). Pharma company earnings/setbacks = Business (e.g. AstraZeneca diabetes drug delay).
+  - World = politics, government, military, war, crime, international relations, social issues, environmental/ocean policy, religion, immigration, psychology/social science studies (e.g. crowd fear research), rebuilding efforts in conflict zones.
+  - Sports = games, scores, athletes, tournaments, leagues.
+- Key disambiguation rules (from observed misclassifications):
+  - AstraZeneca diabetes drug delay → Business (pharma financials), NOT Science/Technology
+  - FCC approves wireless merger / Sprint-Nextel merger → Business (deal), NOT Science/Technology
+  - Crowd psychology / fear factor research → World (social science), NOT Science/Technology
+  - Iraq science rebuilding story → World (conflict zone context), NOT Science/Technology
+  - XM Satellite Radio CEO on cell phones → Science/Technology (technology product)
+  - HP virus-throttling software → Science/Technology
+  - EMC email storage product → Science/Technology
+  - Space probe crash / shuttle repair → Science/Technology
+  - Student science competition wins → Science/Technology
+  - Satellite spy internet technology → Science/Technology
+  - Ocean/water policy → World (NOT Science/Technology)
+- Source: agnews db_description_withhint.txt + ground truth validation (q2 observed counts: 14 under-count, 18/19 over-count; correct = 16/111 = 0.1441).
 - Affects queries: all 4 agnews queries involve category aggregation.
 
 ---

@@ -72,6 +72,34 @@ class AnswerSynthesizer:
                     + ", ".join(category for category in categories if category)
                     + "."
                 )
+            if answer_kind == "fraction":
+                numerator = benchmark_answer.get("numerator", "?")
+                denominator = benchmark_answer.get("denominator", "?")
+                numeric = benchmark_answer.get("numeric_answer", 0)
+                return f"{numerator}/{denominator} ({numeric:.10f})"
+            if answer_kind == "numeric_scalar":
+                return str(benchmark_answer.get("formatted_answer", ""))
+            if answer_kind == "index_symbol":
+                return str(benchmark_answer.get("formatted_answer", ""))
+            if answer_kind == "package_list":
+                top = benchmark_answer.get("top_packages", [])
+                return "; ".join(f"{p['name']} {p['version']}" for p in top)
+            if answer_kind == "business_ranking":
+                businesses = benchmark_answer.get("top_businesses", [])
+                return ", ".join(b["name"] for b in businesses)
+            if answer_kind == "decade_label":
+                return str(benchmark_answer.get("formatted_answer", ""))
+            if answer_kind == "cpc_code_list":
+                return ", ".join(benchmark_answer.get("cpc_codes", []))
+            if answer_kind == "bant_factors":
+                return ", ".join(benchmark_answer.get("failing_factors", []))
+            if answer_kind == "histology_expression_table":
+                rows = benchmark_answer.get("histology_data", [])
+                return "; ".join(
+                    f"{r['Histology_Type']}, {r['Average_Log_Expression']}" for r in rows
+                )
+            if answer_kind == "title_max_description":
+                return str(benchmark_answer.get("formatted_answer", ""))
             return str(benchmark_answer.get("formatted_answer", "Benchmark answer available."))
 
         if plan.get("question_type") == "schema_discovery":

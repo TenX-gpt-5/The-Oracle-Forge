@@ -97,6 +97,10 @@ class Planner:
                     "offer wifi",
                     "registered on yelp",
                     "business categories",
+                    "average number of",
+                    "articles published",
+                    "per year",
+                    "published per",
                 )
             )
         ):

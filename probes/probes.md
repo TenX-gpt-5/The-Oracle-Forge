@@ -108,13 +108,15 @@ DAB's four failure categories:
 - **Post-fix score or outcome:** Pending.
 
 ## Probe 9
-- **Failure category:** Multi-database integration
+- **Failure category:** Infrastructure / Multi-database integration
 - **Query:** Agnews q2 — "What fraction of all articles authored by Amy Jones belong to the Science/Technology category?"
 - **Dataset / Databases involved:** `agnews` — SQLite `authors.name` → `article_metadata.article_id` → MongoDB `articles.description`.
 - **Expected failure:** Agent resolves Amy Jones's `author_id` in SQLite and retrieves `article_id` list, but then filters category against a non-existent `category` column in `article_metadata` instead of classifying from the Mongo `articles.description` text.
-- **Observed failure:** Pending.
-- **Fix applied:** Pending.
-- **Post-fix score or outcome:** Pending.
+- **Observed failure:** Two failures:
+  1. `agent_run_failed (FatalError): MongoDB existence check error` — MongoDB not running (infrastructure).
+  2. After MongoDB fix: agent returned `18/111 = 0.162`, ground truth is `0.144 ≈ 16/111`. LLM classifier over-counted by 2 — prompt included "social science, psychology, environmental" under Science/Technology, but AG News labels those as World.
+- **Fix applied:** (1) MongoDB 7.0 via Docker. (2) Classification prompt updated with explicit AG News disambiguation rules: pharma earnings = Business; telecom mergers as deals = Business; crowd psychology/social science = World; FCC merger approval = Business; ocean policy = World. Rules also added to `kb/domain/domain_terms.md`.
+- **Post-fix score or outcome:** Pending re-run.
 
 ## Probe 10
 - **Failure category:** Multi-database integration

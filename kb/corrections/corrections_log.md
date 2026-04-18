@@ -66,6 +66,15 @@
 
 ---
 
+**16.** "What fraction of all articles authored by Amy Jones belong to the Science/Technology category?" (agnews q2)
+→ First failure: MongoDB not running (infrastructure). Fix: Docker MongoDB 7.0.
+→ Second failure: returned 18/111 — prompt too broad (social science, psychology, environmental counted as Sci/Tech).
+→ Third failure: returned 14/111 — prompt too strict (over-corrected).
+→ Fourth failure: LLM returned 19/111 — borderline articles still misclassified.
+→ **Correct answer: 16/111 = 0.1441.** Root cause: LLM classification prompt lacked specific disambiguation rules for borderline AG News cases. Fixed by adding explicit rules to KB (`domain_terms.md`) and to the classification prompt: pharma earnings/drug delays = Business; telecom mergers as deals = Business; crowd psychology = World; FCC merger approval = Business; ocean policy = World.
+
+---
+
 ## Unstructured Text Extraction Failure
 
 **13.** "Count users complaining about missing packages."

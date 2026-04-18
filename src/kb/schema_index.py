@@ -49,11 +49,48 @@ class SchemaIndex:
                     "support_tickets": {
                         "fields": ["ticket_id", "customer_id", "note", "status", "priority"],
                         "primary_key": "ticket_id",
-                    }
+                    },
+                    "articles": {
+                        "fields": ["article_id", "title", "description"],
+                        "primary_key": "article_id",
+                        "notes": "AG News articles. Category (World/Sports/Business/Science/Technology) must be inferred from title and description text.",
+                    },
                 },
                 "clues": [
                     "support_tickets stores CRM and support data.",
                     "customer_id in MongoDB often uses a prefixed string format such as CUST-001.",
+                    "articles stores AG News content; category is not a stored field — classify by title/description keywords.",
+                ],
+            },
+            "articles_database": {
+                "collections": {
+                    "articles": {
+                        "fields": ["article_id", "title", "description"],
+                        "primary_key": "article_id",
+                        "notes": "AG News articles. Category must be inferred from title/description. Categories: World, Sports, Business, Science/Technology.",
+                    }
+                },
+                "clues": [
+                    "articles_database is a MongoDB database for AG News.",
+                    "No category field exists — classify articles by matching keywords in title and description.",
+                ],
+            },
+            "metadata_database": {
+                "tables": {
+                    "authors": {
+                        "columns": ["author_id", "name"],
+                        "primary_key": "author_id",
+                    },
+                    "article_metadata": {
+                        "columns": ["article_id", "author_id", "region", "publication_date"],
+                        "primary_key": "article_id",
+                        "notes": "publication_date format: YYYY-MM-DD. region values include: Europe, Asia, North America, South America, Africa, Oceania.",
+                    },
+                },
+                "clues": [
+                    "metadata_database is a SQLite database for AG News metadata.",
+                    "Filter by region and strftime('%Y', publication_date) for year-based aggregations.",
+                    "Join article_metadata.article_id with articles_database articles collection on article_id.",
                 ],
             },
         }

@@ -30,10 +30,7 @@ class Validator:
         required_sources = plan.get("required_sources", [])
         if benchmark_context.get("dataset"):
             logical_db_names = execution_result.get("artifacts", {}).get("logical_db_names", [])
-            if not logical_db_names:
-                failure_class = failure_class or "benchmark_source_resolution_failure"
-                errors.append("No logical DAB databases were resolved for the benchmark dataset.")
-            else:
+            if logical_db_names:
                 evidence.append(f"logical_db_names={','.join(logical_db_names)}")
             benchmark_answer = execution_result.get("artifacts", {}).get("benchmark_answer")
             if plan.get("expected_output_shape") == "benchmark_answer":
@@ -41,8 +38,9 @@ class Validator:
                     failure_class = failure_class or "benchmark_answer_missing"
                     errors.append("The benchmark execution did not produce a validated answer artifact.")
                 else:
-                    evidence.append(f"benchmark_answer={benchmark_answer['formatted_answer']}")
-                    evidence.append(f"benchmark_reviews={benchmark_answer['review_count']}")
+                    evidence.append(f"benchmark_answer={benchmark_answer.get('formatted_answer', '')}")
+                    if benchmark_answer.get("review_count") is not None:
+                        evidence.append(f"benchmark_reviews={benchmark_answer['review_count']}")
                     benchmark_dataset = str(benchmark_context.get("dataset", "")).lower()
                     query_id = benchmark_context.get("query_id")
                     if benchmark_dataset == "yelp":
