@@ -99,7 +99,7 @@ Validate the Oracle Forge benchmark starter query:
 ```bash
 cd /shared/DataAgentBench/oracle_forge_v3
 source .venv/bin/activate
-python3 run_agent.py --dataset yelp --query_id 1 --llm google/gemini-2.0-flash-001 --iterations 1 --root_name run_tmp
+python3 run_benchmark_query.py --dataset yelp --query-id 1 --validate-answer
 ```
 
 ## 6. Execution Patterns
@@ -107,21 +107,19 @@ python3 run_agent.py --dataset yelp --query_id 1 --llm google/gemini-2.0-flash-0
 ### Running the Agent
 To run a specific benchmark query with the official configuration:
 ```bash
-python3 run_agent.py --dataset yelp --query_id 1 --llm google/gemini-2.0-flash-001
+python3 run_benchmark_query.py --dataset yelp --query-id 1 --validate-answer
 ```
 
 ### Running the Benchmark Harness
 To run the full validation harness for a specific query:
 ```bash
-python3 run_benchmark_query.py --dataset yelp --query-id 1 --validate-answer
+python3 eval/run_benchmark.py --agent src.agent.orchestrator --trials 5 --output results/demo_yelp_q1_trials5.json --datasets yelp --query-ids 1 --remote-host localhost --remote-dab-path /shared/DataAgentBench
 ```
 
 ### Key Parameters
-- `--dataset`: `yelp`, `agnews`, etc.
-- `--query_id`: The specific query number from the dataset.
-- `--llm`: The model string (e.g., `google/gemini-2.0-flash-001` or `gpt-4o`).
-- `--iterations`: Number of tool-use loops (default is 100, use 1-5 for debugging).
-- `--root_name`: The name for the log output folder.
+- `--dataset`: dataset family name such as `yelp` or `crmarenapro`
+- `--query-id`: the specific query number from the dataset
+- `--validate-answer`: compare the agent output against the benchmark validator
 
 ## 7. Important Team Rule
 

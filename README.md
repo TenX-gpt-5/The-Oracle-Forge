@@ -16,6 +16,7 @@ Production-style data-agent workspace for the Oracle Forge challenge.
 
 ## Live Agent Access
 
+- Live agent access guide: [TEAM_JOIN.md](./TEAM_JOIN.md)
 - Shared server access: `ssh trp-gpt5`
 - Shared tmux socket: `/shared/tmux/oracle-forge.sock`
 - Shared tmux session: `oracle-forge-gpt5`
@@ -29,17 +30,17 @@ Production-style data-agent workspace for the Oracle Forge challenge.
 ## Fresh Machine Setup
 
 ```bash
-git clone https://github.com/Gersum/The-Oracle-Forge.git
+git clone https://github.com/TenX-gpt-5/The-Oracle-Forge.git
 cd The-Oracle-Forge
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
 Quick smoke command after setup:
 
 ```bash
-python run_benchmark_query.py --dataset yelp --query-id 1 --validate-answer
+python3 run_benchmark_query.py --dataset yelp --query-id 1 --validate-answer
 ```
 
 This repo currently includes:
@@ -79,8 +80,8 @@ Run the benchmark starter query:
 
 ```bash
 cd /shared/DataAgentBench/oracle_forge_v3
-source venv/bin/activate
-python run_benchmark_query.py --dataset yelp --query-id 1 --validate-answer
+source .venv/bin/activate
+python3 run_benchmark_query.py --dataset yelp --query-id 1 --validate-answer
 ```
 
 Healthy output should end with:
@@ -99,8 +100,8 @@ Yelp business metadata sample:
 
 ```bash
 cd /shared/DataAgentBench/oracle_forge_v3
-source venv/bin/activate
-python - <<'PY'
+source .venv/bin/activate
+python3 - <<'PY'
 import json
 from src.dab.remote_dab_adapter import RemoteDABAdapter
 
@@ -120,8 +121,8 @@ Yelp review rows sample:
 
 ```bash
 cd /shared/DataAgentBench/oracle_forge_v3
-source venv/bin/activate
-python - <<'PY'
+source .venv/bin/activate
+python3 - <<'PY'
 from src.dab.remote_dab_adapter import RemoteDABAdapter
 
 adapter = RemoteDABAdapter()
@@ -136,8 +137,8 @@ List SQLite objects in `crmarenapro`:
 
 ```bash
 cd /shared/DataAgentBench/oracle_forge_v3
-source venv/bin/activate
-python - <<'PY'
+source .venv/bin/activate
+python3 - <<'PY'
 from src.dab.remote_dab_adapter import RemoteDABAdapter
 
 adapter = RemoteDABAdapter()
@@ -149,8 +150,8 @@ Query a SQLite table after confirming the name from the listing:
 
 ```bash
 cd /shared/DataAgentBench/oracle_forge_v3
-source venv/bin/activate
-python - <<'PY'
+source .venv/bin/activate
+python3 - <<'PY'
 from src.dab.remote_dab_adapter import RemoteDABAdapter
 
 adapter = RemoteDABAdapter()
@@ -164,8 +165,8 @@ List PostgreSQL objects in `crmarenapro`:
 
 ```bash
 cd /shared/DataAgentBench/oracle_forge_v3
-source venv/bin/activate
-python - <<'PY'
+source .venv/bin/activate
+python3 - <<'PY'
 from src.dab.remote_dab_adapter import RemoteDABAdapter
 
 adapter = RemoteDABAdapter()
@@ -177,8 +178,8 @@ Then query a table after confirming the real name from the listing:
 
 ```bash
 cd /shared/DataAgentBench/oracle_forge_v3
-source venv/bin/activate
-python - <<'PY'
+source .venv/bin/activate
+python3 - <<'PY'
 from src.dab.remote_dab_adapter import RemoteDABAdapter
 
 adapter = RemoteDABAdapter()

@@ -15,8 +15,8 @@ This is the best end-to-end validation of the current shared setup.
 
 ```bash
 cd /shared/DataAgentBench/oracle_forge_v3
-source venv/bin/activate
-python run_benchmark_query.py --dataset yelp --query-id 1 --validate-answer
+source .venv/bin/activate
+python3 run_benchmark_query.py --dataset yelp --query-id 1 --validate-answer
 ```
 
 Healthy result:
@@ -39,13 +39,13 @@ Run these from:
 
 ```bash
 cd /shared/DataAgentBench/oracle_forge_v3
-source venv/bin/activate
+source .venv/bin/activate
 ```
 
 ### MongoDB
 
 ```bash
-python - <<'PY'
+python3 - <<'PY'
 import json
 from src.dab.remote_dab_adapter import RemoteDABAdapter
 
@@ -67,7 +67,7 @@ Expected signal:
 ### DuckDB
 
 ```bash
-python - <<'PY'
+python3 - <<'PY'
 from src.dab.remote_dab_adapter import RemoteDABAdapter
 
 adapter = RemoteDABAdapter()
@@ -83,7 +83,7 @@ Expected signal:
 ### SQLite
 
 ```bash
-python - <<'PY'
+python3 - <<'PY'
 from src.dab.remote_dab_adapter import RemoteDABAdapter
 
 adapter = RemoteDABAdapter()
@@ -99,7 +99,7 @@ Expected signal:
 Optional query:
 
 ```bash
-python - <<'PY'
+python3 - <<'PY'
 from src.dab.remote_dab_adapter import RemoteDABAdapter
 
 adapter = RemoteDABAdapter()
@@ -110,7 +110,7 @@ PY
 ### PostgreSQL
 
 ```bash
-python - <<'PY'
+python3 - <<'PY'
 from src.dab.remote_dab_adapter import RemoteDABAdapter
 
 adapter = RemoteDABAdapter()
@@ -126,7 +126,7 @@ Expected signal:
 Optional query:
 
 ```bash
-python - <<'PY'
+python3 - <<'PY'
 from src.dab.remote_dab_adapter import RemoteDABAdapter
 
 adapter = RemoteDABAdapter()
@@ -201,8 +201,8 @@ whoami
 pwd
 tmux -S /shared/tmux/oracle-forge.sock list-windows -t oracle-forge-gpt5
 cd /shared/DataAgentBench/oracle_forge_v3
-source venv/bin/activate
-python -c "from src.dab.remote_dab_adapter import RemoteDABAdapter; print('ok')"
+source .venv/bin/activate
+python3 -c "from src.dab.remote_dab_adapter import RemoteDABAdapter; print('ok')"
 ```
 
 If the final line prints:

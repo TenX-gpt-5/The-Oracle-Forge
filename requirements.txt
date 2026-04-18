@@ -1,0 +1,17 @@
+# Oracle Forge root dependency manifest.
+#
+# Keep this file as the single source of truth for fresh-clone setup.
+# The submission-facing `agent/requirements.txt` delegates to this file.
+
+anyio
+duckdb
+fastapi
+httpx
+mcp
+openai
+psycopg2-binary
+pymongo
+pydantic
+python-dotenv
+pytest
+uvicorn
