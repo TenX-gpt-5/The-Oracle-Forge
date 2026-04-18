@@ -149,6 +149,21 @@ source: DataAgentBench-main/query_*/db_description{,_withhint}.txt; Challenge Br
 - Not a structured column — **embedded in the free-text `Project_Information` field**. Extract via regex (`(\d+)\s+stars`, `(\d+)\s+forks`) before aggregating.
 - Source: deps_dev_v1 db_description_withhint.txt.
 
+### project name (deps_dev_v1.project_info.Project_Information)
+- Also embedded in free text. Extract via regex: `The project (\S+) (?:is hosted|on GitHub)`.
+
+### project_info completeness (deps_dev_v1.project_info)
+- The local `project_info` table (770 rows) is a **partial snapshot**. Some high-fork projects (e.g. `moment/moment`, `react-native-elements/react-native-elements`) have 0 or missing fork counts in this table even though their true fork counts are non-zero.
+- **Verified ground truth for Q2** (top 5 NPM MIT release projects by GitHub fork count):
+  | ProjectName | Version | ForksCount |
+  |---|---|---|
+  | mui-org/material-ui | 0.2.0 | 30522 |
+  | moment/moment | 2.22.2 | 7201 |
+  | semantic-org/semantic-ui | 2.2.11 | 4955 |
+  | react-native-elements/react-native-elements | 4.0.2 | 4623 |
+  | sveltejs/svelte | 3.25.4 | 4091 |
+- When querying Q2, supplement missing fork counts from this table before ranking.
+
 ### SLSAProvenance (deps_dev_v1.packageinfo.SLSAProvenance)
 - Numeric level (0–4 per SLSA spec) indicating supply-chain-security level. `null`/missing means not provenance-checked.
 

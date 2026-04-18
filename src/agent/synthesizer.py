@@ -84,6 +84,11 @@ class AnswerSynthesizer:
             if answer_kind == "package_list":
                 top = benchmark_answer.get("top_packages", [])
                 return "; ".join(f"{p['name']} {p['version']}" for p in top)
+            if answer_kind == "project_fork_ranking":
+                top = benchmark_answer.get("top_projects", [])
+                return "; ".join(
+                    f"{p['project']} {p['version']} (forks: {p['forks']})" for p in top
+                )
             if answer_kind == "business_ranking":
                 businesses = benchmark_answer.get("top_businesses", [])
                 return ", ".join(b["name"] for b in businesses)

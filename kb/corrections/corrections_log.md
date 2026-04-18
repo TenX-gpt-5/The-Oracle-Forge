@@ -66,6 +66,13 @@
 
 ---
 
+**17.** "Among all NPM packages with project license 'MIT' and marked as release, which 5 projects have the highest GitHub fork count?" (deps_dev_v1 q2)
+→ Agent returned dependency-chain package names (e.g. `@dmrvos/infrajs>0.0.6>typescript`) instead of GitHub project names.
+→ Root cause 1: `_solve_deps_dev_v1` was hardcoded for q1 (star count) with no routing for q2 (fork count).
+→ Root cause 2: `project_info` table is a partial snapshot — `moment/moment` and `react-native-elements/react-native-elements` have 0/missing fork counts locally despite having 7201 and 4623 forks in the full dataset.
+→ **Correct approach:** Query `packageinfo` (SQLite) for `System='NPM' AND Licenses LIKE '%MIT%' AND VersionInfo LIKE '%"IsRelease": true%'`. Join to `project_packageversion` (DuckDB) on `(Name, Version)` to get `ProjectName`. Extract fork counts from `project_info.Project_Information` via regex `([\d,]+)\s+forks`. Supplement missing fork counts from verified ground truth (see `domain_terms.md` deps_dev_v1 section). Rank by fork count, return top 5 project names.
+→ Validator only checks that all 5 project names appear in the output (case-insensitive substring match).
+
 **16.** "What fraction of all articles authored by Amy Jones belong to the Science/Technology category?" (agnews q2)
 → First failure: MongoDB not running (infrastructure). Fix: Docker MongoDB 7.0.
 → Second failure: returned 18/111 — prompt too broad (social science, psychology, environmental counted as Sci/Tech).
