@@ -11,3 +11,4 @@ sandbox.db
 *.log
 node_modules/
 .vscode/
+results/*.json
