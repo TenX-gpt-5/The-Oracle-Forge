@@ -20,10 +20,24 @@ leak — schema index, domain store, corrections log.
 Impressions: [to be updated]
 
 Thread 2 — April 14, 2026
-Link: [paste second thread link here]
-Topic: MCP configuration challenge — switching from 
-file-based to live database connections across PostgreSQL, 
-MongoDB, SQLite and DuckDB. What broke and how we fixed it.
+Link: https://x.com/carinobetty22/status/2044149854306185464
+Author: Bethelhem Abay
+Topic: Oracle Forge architecture thread — multi-database 
+routing and self-repair loop.
+Impressions: [to be updated]
+
+Thread 3 — April 14, 2026
+Link: https://x.com/carinobetty22/status/2044150321446895815
+Author: Bethelhem Abay
+Topic: Context engineering thread — three KB layers, 
+DAB 38% ceiling argument.
+Impressions: [to be updated]
+
+Thread 4 — April 18, 2026 (Week 9 benchmark post)
+Link: https://x.com/carinobetty22/status/2045525170090062203
+Author: Bethelhem Abay
+Topic: Benchmark results — Yelp pass@1=1.0, 7 queries, 
+50 trials, DAB official validator confirmed.
 Impressions: [to be updated]
 
 ### Reddit

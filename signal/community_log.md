@@ -22,16 +22,16 @@ What was learned: The dominant practitioner failure is ill-formatted join keys (
 Why it matters to Oracle Forge: Changed Signal Corps framing for the Reddit post — led with join key normalization instead of routing as the hard problem. Also reprioritized adversarial probe library.
 Action taken: Reddit post framing updated. Intelligence Officer flagged for KB corrections log.
 
+## 2026-04-18
+Source: Trino Slack community — #dev channel
+What was learned: Practitioner François AUTAA confirmed a working Trino MCP server has been running for 3 months: github.com/tuannvm/mcp-trino. No official agentic layer exists yet for Trino, but practitioners are already using Trino via CLI in tools like Claude. The community is actively interested in agents querying Trino-managed catalogs.
+Why it matters to Oracle Forge: Direct input into Week 9 architecture planning — Trino MCP server is a viable path for expanding dataset coverage beyond the current four-DB setup. Flagged to Intelligence Officers for KB schema mapping.
+Action taken: Link shared with Intelligence Officers. Added to Week 9 architecture agenda.
+
 ---
 
 ## Substantive Community Comments Posted by Team
 
-## 2026-04-14
-Platform: Reddit — r/LocalLLaMA
-Link: https://www.reddit.com/r/LocalLLaMA/comments/1slh1ce/were_building_against_dataagentbench_uc_berkeley/
-Posted by: Bethelhem Abay (Signal Corps)
-Comment type: Original post explaining why multi-database AI agents are harder than they look — DAB four hard requirements, the 38% ceiling, ill-formatted join key problem with specific example (integer vs CUST-001 string in MongoDB).
-Response: Monitoring — responses expected before April 18.
 
 ## 2026-04-14
 Platform: X (Twitter)

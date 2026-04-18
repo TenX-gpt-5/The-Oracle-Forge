@@ -138,3 +138,109 @@ Topic: Daily update — MCP config changed from file-based
        to live DB connections, data seeding completed
 Response: Internal only
 Follow-up needed: Gersum to fix db permissions
+
+
+## 2026-04-15
+Platform: Slack (internal)
+Link: #oracle-forge-gpt5
+Topic: Daily update — Week 9 Day 1
+Update:
+- Shipped: Yelp q1–q7 full validation sweep confirmed on remote host, 50 trials each, all passing. Score logs synced back to local workspace.
+- Stuck: Broader dataset coverage beyond Yelp still pending — stockindex and bookreview hitting dependency issues.
+- Next: KB changelogs updated to reflect real benchmark evidence, probe library updated with post-fix outcomes.
+Response: Internal only
+Follow-up needed: None
+
+## 2026-04-16
+Platform: Slack (internal)
+Link: #oracle-forge-gpt5
+Topic: Daily update — Week 9 Day 2
+Update:
+- Shipped: KB changelogs aligned with benchmark evidence. Architecture, domain, corrections, and evaluation logs all pointing to same verified Yelp result. Probe library updated — Yelp probes now reflect actual post-fix pass outcomes.
+- Stuck: Server intermittently down during iteration runs — team monitoring.
+- Next: Signal Corps Week 9 benchmark posts to be drafted. Final engagement portfolio compilation begins.
+Response: Internal only
+Follow-up needed: None
+
+## 2026-04-17
+Platform: Slack (internal)
+Link: #oracle-forge-gpt5
+Topic: Daily update — Week 9 Day 3
+Update:
+- Shipped: Benchmark evidence and KB alignment confirmed in sync. Complete Yelp q1–q7 record with structured score logs, exact commands, and outcomes committed. Adversarial probe library reflects actual repaired behaviors.
+- Stuck: Submission portal not yet open — waiting on facilitator announcement.
+- Next: Demo video preparation. Signal Corps benchmark posts go live April 18.
+Response: Internal only
+Follow-up needed: None
+
+## 2026-04-18
+Platform: Slack (internal)
+Link: #oracle-forge-gpt5
+Topic: Daily update — Week 9 Day 4 (submission day)
+Update:
+- Shipped: Signal Corps Week 9 posts published on LinkedIn and X with live benchmark evidence. Full Yelp run confirmed pass@1=1.0 on 7 queries, DAB official validator verified. Demo video recorded.
+- Stuck: Reddit posting blocked — platform issue.
+- Next: Final submission by 21:00 UTC — GitHub repo, final report, demo video.
+Response: Internal only
+Follow-up needed: None
+
+## 2026-04-18
+Platform: LinkedIn
+Link: https://www.linkedin.com/posts/bethelhem-abay-melaku-618192205_dataagentbench-aiagents-contextengineering-share-7451284760624173056-_12o
+Author: Bethelhem Abay
+Topic: Oracle Forge v3 benchmark closure — pass@1=1.0 on Yelp, 7 queries, 50 trials each. KB architecture as the unlock between 38% (DAB best) and 100% on validated dataset.
+Evidence referenced: Live benchmark run results, DAB official validator confirmation, three KB layers explanation.
+Response: Monitoring
+Follow-up needed: Monitor for comments and reactions
+
+## 2026-04-18
+Platform: X (Twitter)
+Link: https://x.com/carinobetty22/status/2045525170090062203
+Author: Bethelhem Abay
+Topic: Benchmark results post — Yelp pass@1=1.0, KB architecture explanation.
+Response: Monitoring
+Follow-up needed: None
+
+## 2026-04-14
+Platform: X (Twitter)
+Link: https://x.com/carinobetty22/status/2044150321446895815
+Author: Bethelhem Abay
+Topic: Context engineering thread — three KB layers, DAB 38% ceiling argument.
+Response: Monitoring
+Follow-up needed: None
+
+## 2026-04-14
+Platform: X (Twitter)
+Link: https://x.com/carinobetty22/status/2044149854306185464
+Author: Bethelhem Abay
+Topic: Oracle Forge architecture thread — multi-database routing and self-repair loop.
+Response: Monitoring
+Follow-up needed: None
+
+---
+
+## Final Engagement Portfolio — April 18, 2026
+
+### All Posts with Links
+
+| Date | Platform | Author | Link | Topic |
+|---|---|---|---|---|
+| Apr 14 | X (Twitter) | Lidya Dagnew | https://x.com/LidyaDagnew/status/2044044847699329443 | 3-layer context engineering, DAB 38% ceiling |
+| Apr 14 | X (Twitter) | Bethelhem Abay | https://x.com/carinobetty22/status/2044150321446895815 | Context engineering thread |
+| Apr 14 | X (Twitter) | Bethelhem Abay | https://x.com/carinobetty22/status/2044149854306185464 | Oracle Forge architecture |
+| Apr 14 | Reddit | Bethelhem Abay | https://www.reddit.com/r/LocalLLaMA/comments/1slh1ce/were_building_against_dataagentbench_uc_berkeley/ | DAB four hard requirements, join key failures |
+| Apr 14 | LinkedIn | Eyobed Feleke | https://www.linkedin.com/posts/eyobed-feleke_agenticai-bigdata-aws-activity-7449744022258163712-T131 | Oracle Forge system design |
+| Apr 14 | LinkedIn | Bethelhem Abay | https://www.linkedin.com/feed/update/urn:li:share:7449902416717742080/ | 38% benchmark ceiling, architecture gap argument |
+| Apr 18 | LinkedIn | Bethelhem Abay | https://www.linkedin.com/posts/bethelhem-abay-melaku-618192205_dataagentbench-aiagents-contextengineering-share-7451284760624173056-_12o | Benchmark closure — pass@1=1.0 |
+| Apr 18 | X (Twitter) | Bethelhem Abay | https://x.com/carinobetty22/status/2045525170090062203 | Benchmark results |
+
+### Community Intelligence That Changed Team's Technical Approach
+
+1. **Join key normalization reprioritized** — DAB GitHub Issues surfaced that the dominant practitioner failure is integer vs prefixed-string ID mismatches, not routing. This changed the Reddit post framing and reprioritized the adversarial probe library toward join key failure cases.
+
+2. **Trino MCP server discovered** — Trino Slack community reply from practitioner François AUTAA surfaced a working MCP server (github.com/tuannvm/mcp-trino) active for 3 months. Flagged to Intelligence Officers for Week 9 architecture planning — direct input into broader dataset coverage strategy.
+
+3. **Claude Code autoDream pattern** — Architecture leak surfaced the corrections log consolidation pattern. Directly shaped KB v3 design — our corrections log is the autoDream equivalent.
+
+### Metrics
+Reach metrics across all platforms to be updated as available. As of submission date, posts are live and indexed. Community monitoring ongoing.
