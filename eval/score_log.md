@@ -248,3 +248,21 @@ Notes:
 - q5: `a03Wt00000JqnHwIAJ`
 - q6: `ka0Wt000000EnwvIAC`
 - q7: `ka0Wt000000EoD3IAK`
+
+## 2026-04-18
+Run type: Final family status snapshot
+Scope: BookReview, AGNEWS, DEPS_DEV_V1, GitHub Repos, GEO, MUSIC, PANCANCERATLAS, PATENTS, STOCK_INDEX, STOCK_MARKET, Yelp, CRM
+Notes:
+- BookReview: all passed
+- AGNEWS: partial, `2/4` passing at `50` trials
+- DEPS_DEV_V1: not passed
+- GitHub Repos: not passed overall
+- GEO: all passed
+- MUSIC: not passed
+- PANCANCERATLAS: not passed
+- PATENTS: not passed
+- STOCK_INDEX: not passed
+- STOCK_MARKET: not passed
+- Yelp: all passed
+- CRM: all passed (`13/13`, `50` trials each)
+- Official benchmark artifact remains `results/dab_results.json` with `pass@1 = 0.42` and `pass@10 = 0.58`

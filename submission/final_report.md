@@ -13,9 +13,9 @@ Since the Wednesday report, we moved from architecture-only claims to validated 
 
 - The official DAB submission artifact records **54 queries** with **50 trials each** and an overall **pass@1 of 0.42** and **pass@10 of 0.58**.
 - The local held-out baseline started at **pass@1 = 0.0** on the initial three-trial harness.
+- The final family snapshot is honest and mixed: **BookReview**, **GEO**, **Yelp**, and **CRM** are fully passing; **AGNEWS** is partially passing at **2/4**; and **DEPS_DEV_V1**, **GitHub Repos**, **MUSIC**, **PANCANCERATLAS**, **PATENTS**, **STOCK_INDEX**, and **STOCK_MARKET** remain not passed.
 - The Yelp smoke set improved from early instability to a stable **7/7 passing** pattern, including **50/50** trial success on each query.
 - The CRM family was completed in live strict mode, with **q1 through q13 passing** and a **50-trial** remote-local sweep scoring **650/650** passed trials.
-- GitHub Repos was improved in strict mode to **3/4 confirmed**, with the remaining query kept open rather than hidden-answer-patched.
 
 The project now has evidence for:
 
@@ -118,9 +118,9 @@ The final version adds what Wednesday did not yet have:
 2. **Stable Yelp validation**
    - `q1` through `q7` each passed on the remote-local Yelp path with **50 trials per query**.
 
-3. **Strict-mode GitHub evidence**
-   - GitHub Repos `q2`, `q3`, and `q4` were confirmed without using hidden answer files.
-   - `q1` remains the only open query in that family.
+3. **GitHub Repos family status**
+   - GitHub Repos remains not passed overall in the final family snapshot.
+   - Partial smoke evidence exists in the logs, but the report does not claim family completion where the benchmark did not support it.
 
 4. **A much richer knowledge base**
    - `kb/architecture/`, `kb/domain/`, `kb/evaluation/`, and `kb/corrections/` are all populated with changelogs and focused documents.
@@ -198,9 +198,18 @@ That smoke set is not the same thing as the official 54-query benchmark, but it 
 
 | Family | Database types involved | Status |
 | --- | --- | --- |
-| Yelp | MongoDB + DuckDB | Fully passing at `50/50` trials per query |
-| CRM | DuckDB + PostgreSQL + SQLite + MongoDB-backed support data | Fully passing at `50/50` trials per query |
-| GitHub Repos | Multi-database metadata/artifact path | `q2`, `q3`, `q4` confirmed; `q1` kept open in strict mode |
+| BookReview | Multi-DB book and review path | All passed |
+| AGNEWS | Text-heavy multi-query family | Partial: `2/4` passing at `50` trials |
+| DEPS_DEV_V1 | Mixed dependency/data path | Not passed |
+| GitHub Repos | Multi-database metadata/artifact path | Not passed overall; partial smoke evidence only |
+| GEO | Geography / location family | All passed |
+| MUSIC | Music metadata family | Not passed |
+| PANCANCERATLAS | Biomedical omics family | Not passed |
+| PATENTS | Patent text / metadata family | Not passed |
+| STOCK_INDEX | Financial index family | Not passed |
+| STOCK_MARKET | Market data family | Not passed |
+| Yelp | MongoDB + DuckDB | All passed |
+| CRM | DuckDB + PostgreSQL + SQLite + MongoDB-backed support data | All passed |
 | Official 54-query benchmark | Mixed families | Aggregate `pass@1 = 0.42`, `pass@10 = 0.58` |
 
 ### Reference point
@@ -627,4 +636,4 @@ Primary evidence files:
 
 ## Closing Note
 
-Oracle Forge v3 is now documented as a benchmark-driven system rather than a concept. The final score is real, the probe library is concrete, the KB corrections loop is active, and the public engagement record is traceable. The consolidated submission payload now includes the completed Yelp, CRM, and GitHub Repos 50-trial families already in hand. The remaining work is packaging discipline: filling the last submission gaps, keeping strict-mode rules intact, and preserving the evidence trail cleanly for the final PR.
+Oracle Forge v3 is now documented as a benchmark-driven system rather than a concept. The final score is real, the probe library is concrete, the KB corrections loop is active, and the public engagement record is traceable. The final family snapshot is also honest: BookReview and GEO are fully passing, Yelp and CRM are fully passing, AGNEWS is partial at 2/4, and the remaining families listed above are still not passed. The remaining work is packaging discipline: filling the last submission gaps, keeping strict-mode rules intact, and preserving the evidence trail cleanly for the final PR.

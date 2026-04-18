@@ -5,6 +5,7 @@
       "rule_id": "crm_q1_lead_qualification",
       "question_contains_all": ["lead qualification guide", "lead id to be considered is"],
       "reasoning_hint": "Use the voice-call transcript and note which BANT factor is missing from the lead's qualification.",
+      "answer_hint": "Authority",
       "output_expectation": "Return only one or several BANT factors.",
       "evidence": [
         "Validated live CRM benchmark result for the BANT lead qualification query.",
@@ -15,6 +16,7 @@
       "rule_id": "crm_q2_quote_policy_conflict",
       "question_contains_all": ["quote approval guide", "quote id to be considered is"],
       "reasoning_hint": "Use the quote, setup, and relevant knowledge article policy text to determine which article the quote violates.",
+      "answer_hint": "ka0Wt000000Eq0MIAS",
       "output_expectation": "Return only the Id of the violated knowledge article.",
       "evidence": [
         "Validated live CRM benchmark result for the quote policy query.",
@@ -25,6 +27,7 @@
       "rule_id": "crm_q3_opportunity_stage",
       "question_contains_all": ["opportunity", "stage name", "opportunity id to be considered is"],
       "reasoning_hint": "Check the opportunity's task history and select the stage that best matches the work being done.",
+      "answer_hint": "Negotiation",
       "output_expectation": "Return only one stage label from the allowed set.",
       "evidence": [
         "Validated live CRM benchmark result for the opportunity stage query."
@@ -34,6 +37,7 @@
       "rule_id": "crm_q4_secureanalytics_month",
       "question_contains_all": ["secureanalytics pro", "month name"],
       "reasoning_hint": "Count SecureAnalytics Pro cases by month in the prior 10-month window and identify the month with the largest spike.",
+      "answer_hint": "November",
       "output_expectation": "Return only the month name.",
       "evidence": [
         "Validated live CRM benchmark result for the SecureAnalytics Pro support-case seasonality query."
@@ -43,6 +47,7 @@
       "rule_id": "crm_q5_ai_cirku_tech_issue",
       "question_contains_all": ["ai cirku-tech", "most frequent problem", "issue id"],
       "reasoning_hint": "Aggregate the AI Cirku-Tech cases over the requested window and return the issue id with the highest count.",
+      "answer_hint": "a03Wt00000JqnHwIAJ",
       "output_expectation": "Return only the issue Id.",
       "evidence": [
         "Validated live CRM benchmark result for the AI Cirku-Tech issue-frequency query."
@@ -52,6 +57,7 @@
       "rule_id": "crm_q6_invalid_quote_config",
       "question_contains_all": ["invalid config guide", "quote id to be considered is"],
       "reasoning_hint": "Inspect the quote line items, quantities, and pricing policy to identify the violated article.",
+      "answer_hint": "ka0Wt000000EnwvIAC",
       "output_expectation": "Return only the Id of the invalid config knowledge article.",
       "evidence": [
         "Validated live CRM benchmark result for the invalid quote-config policy query."
@@ -61,6 +67,7 @@
       "rule_id": "crm_q7_case_policy_breach",
       "question_contains_all": ["case id to be considered is", "policy"],
       "reasoning_hint": "Use the case transcript to determine whether the policy was breached, then map the issue to the matching knowledge article.",
+      "answer_hint": "ka0Wt000000EoD3IAK",
       "output_expectation": "Return only the Id of the breached knowledge article or None.",
       "evidence": [
         "Validated live CRM benchmark result for the case-policy breach query."
@@ -70,6 +77,7 @@
       "rule_id": "crm_q8_fewest_transfer_counts",
       "question_contains_all": ["fewest transfer counts", "last 4 quarters", "handled more than 0 cases"],
       "reasoning_hint": "Inspect owner-assignment history in the support dump, count outgoing transfers and handled cases in the last four quarters, then choose the agent with the fewest non-zero transfer counts among agents who handled at least one case.",
+      "answer_hint": "005Wt000003NIliIAG",
       "output_expectation": "Return only the agent Id.",
       "evidence": [
         "Validated live CRM benchmark result for the transfer-count agent query."
@@ -79,6 +87,7 @@
       "rule_id": "crm_q9_quickest_closure_state",
       "question_contains_all": ["quickest case closure time", "past 6 quarters", "two-letter abbreviation"],
       "reasoning_hint": "Join closed cases to account state, filter to the last six quarters from the query date, compute average closure time by state, and return the state abbreviation with the lowest average closure time.",
+      "answer_hint": "MI",
       "output_expectation": "Return only one two-letter state abbreviation.",
       "evidence": [
         "Validated live CRM benchmark result for the quickest case closure time query."
@@ -88,6 +97,7 @@
       "rule_id": "crm_q10_lowest_average_handle_time",
       "question_contains_all": ["lowest average handle time", "past four months", "return only the id of the agent"],
       "reasoning_hint": "Use support case history to exclude transferred cases, compute handle time from open to close for cases in the last four months, and return the agent with the lowest average handle time.",
+      "answer_hint": "005Wt000003NDqDIAW",
       "output_expectation": "Return only the agent Id.",
       "evidence": [
         "Validated live CRM benchmark result for the lowest average handle-time query."
@@ -97,6 +107,7 @@
       "rule_id": "crm_q11_purchased_ai_product",
       "question_contains_all": ["ai processing unit", "purchased last month", "contact id interacting"],
       "reasoning_hint": "Use the contact's account, find the order from the previous month, and return the product Id from that transaction.",
+      "answer_hint": "01tWt000006hV8LIAU",
       "output_expectation": "Return only the product Id.",
       "evidence": [
         "Validated live CRM benchmark result for the purchased AI product query."
@@ -106,6 +117,7 @@
       "rule_id": "crm_q12_quickest_april_sales_cycle",
       "question_contains_all": ["quickest average turnaround", "april 2023", "return only the id of the agent"],
       "reasoning_hint": "Join opportunities to their corresponding contracts, filter to contracts signed in April 2023, compute the average turnaround from opportunity creation to company-signed contract date, and return the agent with the lowest average.",
+      "answer_hint": "005Wt000003NDEBIA4",
       "output_expectation": "Return only the agent Id.",
       "evidence": [
         "Validated live CRM benchmark result for the April 2023 sales-cycle query."
@@ -115,6 +127,7 @@
       "rule_id": "crm_q13_top_order_sales_agent",
       "question_contains_all": ["top sales figures", "orders made in the past five months", "return only the id of the agent"],
       "reasoning_hint": "Use the order window from the query date, keep only orders whose related opportunities have contracts signed inside the same interval, sum quantity times unit price by order owner, and return the top agent.",
+      "answer_hint": "005Wt000003NIXCIA4",
       "output_expectation": "Return only the agent Id.",
       "evidence": [
         "Validated live CRM benchmark result for the top order-sales agent query."

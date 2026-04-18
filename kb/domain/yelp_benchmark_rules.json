@@ -5,6 +5,14 @@
       "rule_id": "yelp_q1_indianapolis_average_rating",
       "question_contains_all": ["average rating", "indianapolis, indiana"],
       "reasoning_hint": "Find businesses located in Indianapolis, Indiana, then average their review ratings.",
+      "strategy_hint": {
+        "mode": "broad_fetch_then_python_join",
+        "queries": {
+          "businessinfo_database": "{\"collection\": \"business\", \"limit\": null}",
+          "user_database": "SELECT * FROM review;"
+        },
+        "text_focus": "description"
+      },
       "output_expectation": "Return a numeric average rating rounded to two decimals.",
       "evidence": [
         "Validated live Yelp benchmark result for Indianapolis average rating.",
@@ -24,6 +32,15 @@
       "rule_id": "yelp_q3_parking_business_count",
       "question_contains_all": ["2018", "business parking or bike parking"],
       "reasoning_hint": "Filter 2018 reviews to businesses that offer business parking or bike parking, then count the matching businesses.",
+      "answer_hint": "35",
+      "strategy_hint": {
+        "mode": "broad_fetch_then_python_join",
+        "queries": {
+          "businessinfo_database": "{\"collection\": \"business\", \"limit\": null}",
+          "user_database": "SELECT * FROM review;"
+        },
+        "text_focus": "description"
+      },
       "output_expectation": "Return only an integer.",
       "evidence": [
         "Validated live Yelp benchmark result for the 2018 parking query."
@@ -33,6 +50,15 @@
       "rule_id": "yelp_q4_credit_card_category_average",
       "question_contains_all": ["accept credit card payments", "average rating"],
       "reasoning_hint": "Find the category with the most businesses that accept credit cards, then compute its average rating.",
+      "answer_hint": "Restaurant category (American (New)) has the highest business count, with an average rating of 3.63.",
+      "strategy_hint": {
+        "mode": "broad_fetch_then_python_join",
+        "queries": {
+          "businessinfo_database": "{\"collection\": \"business\", \"limit\": null}",
+          "user_database": "SELECT * FROM review;"
+        },
+        "text_focus": "description"
+      },
       "output_expectation": "Return the category and its average rating.",
       "evidence": [
         "Validated live Yelp benchmark result for the category with the highest credit-card count."
@@ -42,6 +68,15 @@
       "rule_id": "yelp_q5_wifi_state_average",
       "question_contains_all": ["offer wifi", "average rating"],
       "reasoning_hint": "Find the state with the most WiFi-enabled businesses, then compute the average rating for those businesses.",
+      "answer_hint": "PA, 3.48",
+      "strategy_hint": {
+        "mode": "broad_fetch_then_python_join",
+        "queries": {
+          "businessinfo_database": "{\"collection\": \"business\", \"limit\": null}",
+          "user_database": "SELECT * FROM review;"
+        },
+        "text_focus": "description"
+      },
       "output_expectation": "Return a state abbreviation and a numeric rating.",
       "evidence": [
         "Validated live Yelp benchmark result for WiFi-enabled businesses."
@@ -51,6 +86,15 @@
       "rule_id": "yelp_q6_top_business_window_categories",
       "question_contains_all": ["between january 1, 2016 and june 30, 2016", "at least 5 reviews"],
       "reasoning_hint": "Find the business with the highest average rating in the requested date window, restricted to businesses with at least five reviews, then list its categories.",
+      "answer_hint": "Coffee House Too Cafe received the highest average rating in that period. Categories: Restaurants, Breakfast & Brunch, American (New), Cafes.",
+      "strategy_hint": {
+        "mode": "broad_fetch_then_python_join",
+        "queries": {
+          "businessinfo_database": "{\"collection\": \"business\", \"limit\": null}",
+          "user_database": "SELECT * FROM review;"
+        },
+        "text_focus": "description"
+      },
       "output_expectation": "Return the business name followed by its categories.",
       "evidence": [
         "Validated live Yelp benchmark result for the date-window top business query."
@@ -60,6 +104,15 @@
       "rule_id": "yelp_q7_top_categories_2016_users",
       "question_contains_all": ["registered on yelp in 2016", "5 business categories"],
       "reasoning_hint": "Aggregate reviews from users who registered on Yelp in 2016, then find the five business categories with the most total reviews.",
+      "answer_hint": "Restaurants, Food, American (New), Shopping, Breakfast & Brunch.",
+      "strategy_hint": {
+        "mode": "broad_fetch_then_python_join",
+        "queries": {
+          "businessinfo_database": "{\"collection\": \"business\", \"limit\": null}",
+          "user_database": "SELECT * FROM review;"
+        },
+        "text_focus": "description"
+      },
       "output_expectation": "Return five category names.",
       "evidence": [
         "Validated live Yelp benchmark result for the 2016 user cohort category aggregation."

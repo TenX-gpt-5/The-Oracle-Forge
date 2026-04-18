@@ -113,7 +113,13 @@ class RemoteDABAdapter:
                 tool.clean_up()
             """
         )
-        return self._run_json_script(script)
+        result = self._run_json_script(script)
+        if result.get("success"):
+            return result
+        mongo_fallback = self._run_mongo_bson_fallback(dataset=dataset, db_name=db_name, query=query)
+        if mongo_fallback.get("ok"):
+            return mongo_fallback
+        return result
 
     def validate_answer(self, dataset: str, query_id: int, answer: str) -> dict[str, Any]:
         answer_json = json.dumps(answer)
@@ -220,3 +226,72 @@ class RemoteDABAdapter:
         except json.JSONDecodeError:
             pass
         return {"ok": False, "error": "fallback unavailable"}
+
+    def _run_mongo_bson_fallback(
+        self,
+        dataset: str,
+        db_name: str,
+        query: str | None,
+    ) -> dict[str, Any]:
+        query_json = json.dumps(query or "")
+        script = textwrap.dedent(
+            f"""
+            from pathlib import Path
+            import json
+            from bson import decode_all
+            from common_scaffold.tools.db_utils.db_config import load_db_clients
+
+            root = Path("{self.config.dab_path}")
+            dataset_dir = root / "query_{dataset}"
+            db_clients = load_db_clients(dataset_dir / "db_config.yaml")
+            db_client = db_clients.get("{db_name}", {{}})
+            dump_folder = Path(db_client.get("dump_folder", ""))
+            if dump_folder and not dump_folder.is_absolute():
+                dump_folder = (dataset_dir / dump_folder).resolve()
+            try:
+                query = json.loads({query_json})
+            except Exception:
+                print(json.dumps({{"ok": False, "success": False, "error": "invalid mongo query"}}))
+            else:
+                collection = str(query.get("collection", "")).strip()
+                limit = query.get("limit")
+                projection = query.get("projection", {{}})
+                candidate_files = [
+                    dump_folder / f"{{collection}}.bson",
+                    dump_folder / db_client.get("db_name", "") / f"{{collection}}.bson",
+                ]
+                collection_file = next((path for path in candidate_files if path.exists()), None)
+                if not collection_file:
+                    print(json.dumps({{"ok": False, "success": False, "error": f"Collection does not exist: {{collection}}"}}))
+                else:
+                    docs = decode_all(collection_file.read_bytes())
+                    if isinstance(limit, int) and limit >= 0:
+                        docs = docs[:limit]
+                    if isinstance(projection, dict) and projection:
+                        projected = []
+                        for doc in docs:
+                            row = {{}}
+                            include_any = any(bool(v) for k, v in projection.items() if k != "_id")
+                            for field, flag in projection.items():
+                                if field == "_id":
+                                    continue
+                                if flag:
+                                    row[field] = doc.get(field)
+                            if not include_any:
+                                row = dict(doc)
+                            projected.append(row)
+                        docs = projected
+                    print(json.dumps({{"ok": True, "success": True, "result": docs, "row_count": len(docs), "source": "bson-dump-fallback"}}, default=str))
+            """
+        )
+        response = self.client.run_python(script, cwd=self.config.code_path)
+        if not response.get("ok"):
+            return {"ok": False, "error": response.get("stderr") or response.get("stdout") or "mongo bson fallback failed"}
+        stdout = response.get("stdout", "").strip()
+        try:
+            result = json.loads(stdout)
+            if result.get("ok") and result.get("success", result.get("ok")):
+                return result
+        except json.JSONDecodeError:
+            pass
+        return {"ok": False, "error": "mongo bson fallback unavailable"}
