@@ -9,8 +9,13 @@ from __future__ import annotations
 
 from typing import Any
 
+from src.kb.schema_index import SchemaIndex
+
 
 class Planner:
+    def __init__(self) -> None:
+        self.schema_index = SchemaIndex()
+
     def generate_plan(
         self,
         user_question: str,
@@ -20,6 +25,8 @@ class Planner:
         question = user_question.lower()
         repair_context = repair_context or {}
         benchmark_context = benchmark_context or {}
+        dataset = str(benchmark_context.get("dataset", "")).lower()
+        dataset_schema = self.schema_index.get_schema_for_dataset(dataset) if dataset else {}
         benchmark_db_types = sorted(
             {
                 self._normalize_source_type(config.get("db_type", ""))
@@ -27,9 +34,16 @@ class Planner:
                 if config.get("db_type")
             }
         )
+        dataset_source_types = [
+            self._normalize_source_type(source.get("db_type", ""))
+            for source in dataset_schema.get("sources", {}).values()
+            if source.get("db_type")
+        ]
 
         required_sources: list[str] = []
-        if any(token in question for token in ("postgres", "order", "orders", "revenue", "user", "users", "purchase")):
+        if dataset_source_types:
+            required_sources.extend(dataset_source_types)
+        elif any(token in question for token in ("postgres", "order", "orders", "revenue", "user", "users", "purchase")):
             required_sources.append("postgres")
         if any(token in question for token in ("sqlite", "segment", "segments", "cache")):
             required_sources.append("sqlite")
@@ -45,15 +59,22 @@ class Planner:
             entities.append("customer")
         if any(token in question for token in ("ticket", "support", "crm")):
             entities.append("support_ticket")
+        if any(token in question for token in ("lead", "opportunity", "case")):
+            entities.append("crm_record")
+        if any(token in question for token in ("business", "store", "restaurant", "repo", "repository")):
+            entities.append("business")
         if any(token in question for token in ("order", "purchase", "revenue")):
             entities.append("order")
         if any(token in question for token in ("segment", "segments")):
             entities.append("segment")
+        if dataset_schema.get("default_entities"):
+            entities = list(dict.fromkeys(dataset_schema.get("default_entities", []) + entities))
         if not entities:
             entities = ["dataset"]
 
         join_keys: list[str] = []
-        if len(required_sources) > 1 or "customer" in entities:
+        join_keys.extend(dataset_schema.get("join_keys", []))
+        if not dataset_schema.get("join_keys") and (len(required_sources) > 1 or "customer" in entities):
             join_keys.append("customer_id")
 
         needs_text_extraction = any(
@@ -84,7 +105,7 @@ class Planner:
             question_type = "single_source_summary"
             expected_output_shape = "tabular_summary"
 
-        if benchmark_context.get("dataset") or (
+        if dataset or (
             benchmark_db_types
             and any(
                 token in question
@@ -119,7 +140,7 @@ class Planner:
             "question_type": question_type,
             "required_sources": list(dict.fromkeys(required_sources)),
             "entities": list(dict.fromkeys(entities)),
-            "join_keys": join_keys,
+            "join_keys": list(dict.fromkeys(join_keys)),
             "needs_text_extraction": needs_text_extraction,
             "needs_domain_resolution": needs_domain_resolution,
             "expected_output_shape": expected_output_shape,

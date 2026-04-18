@@ -42,7 +42,7 @@ class Validator:
                     errors.append("The benchmark execution did not produce a validated answer artifact.")
                 else:
                     evidence.append(f"benchmark_answer={benchmark_answer['formatted_answer']}")
-                    evidence.append(f"benchmark_reviews={benchmark_answer['review_count']}")
+                    evidence.append(f"benchmark_reviews={benchmark_answer.get('review_count', 0)}")
                     benchmark_dataset = str(benchmark_context.get("dataset", "")).lower()
                     query_id = benchmark_context.get("query_id")
                     if benchmark_dataset == "yelp":

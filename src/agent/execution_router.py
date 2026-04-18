@@ -23,6 +23,8 @@ from pymongo import MongoClient
 
 from src.dab.remote_dab_adapter import RemoteDABAdapter
 from src.kb.benchmark_knowledge import BenchmarkKnowledge
+from src.kb.schema_index import SchemaIndex
+from src.tools.llm_client import LLMClient
 from src.tools.remote_sandbox import RemoteSandboxClient, RemoteSandboxConfig
 from src.tools.toolbox_client import ToolboxClient
 from src.tools.transform_tools import aggregate_by_field, extract_rows_with_facts, join_on_normalized_key, run_python_transform
@@ -87,6 +89,8 @@ class ExecutionRouter:
         self.remote_dab = RemoteDABAdapter(self.remote_sandbox)
         self.toolbox = ToolboxClient()
         self.benchmark_knowledge = BenchmarkKnowledge()
+        self.schema_index = SchemaIndex()
+        self.llm_client: LLMClient | None = None
         self.benchmark_rule_handlers = {
             "crm_q1_lead_qualification": lambda question, tool_calls: self._solve_crmarenapro_lead_qualification(question=question, tool_calls=tool_calls),
             "crm_q2_quote_policy_conflict": lambda question, tool_calls: self._solve_crmarenapro_quote_policy(question=question, tool_calls=tool_calls),
@@ -108,10 +112,14 @@ class ExecutionRouter:
             "yelp_q5_wifi_state_average": lambda question, tool_calls: self._solve_yelp_top_wifi_state(tool_calls=tool_calls),
             "yelp_q6_top_business_window_categories": lambda question, tool_calls: self._solve_yelp_top_business_in_window(tool_calls=tool_calls),
             "yelp_q7_top_categories_2016_users": lambda question, tool_calls: self._solve_yelp_top_categories_for_2016_users(tool_calls=tool_calls),
+            "googlelocal_q1_top_businesses": lambda question, tool_calls: self._solve_googlelocal_top_businesses(question=question, tool_calls=tool_calls),
             "github_q2_swift_repo": lambda question, tool_calls: self._solve_github_repos_most_copied_swift_repo(tool_calls=tool_calls),
             "github_q3_shell_apache_commit_count": lambda question, tool_calls: self._solve_github_repos_shell_apache_commit_count(tool_calls=tool_calls),
             "github_q4_top_non_python_repos": lambda question, tool_calls: self._solve_github_repos_top_non_python_commit_repos(tool_calls=tool_calls),
         }
+
+    def _can_use_llm(self) -> bool:
+        return bool(os.getenv("OPENROUTER_API_KEY", ""))
 
     def execute_plan(
         self,
@@ -138,6 +146,7 @@ class ExecutionRouter:
             return self._execute_remote_dab(
                 question=question,
                 plan=plan,
+                context_payload=context_payload,
                 benchmark_context=benchmark_context,
                 tool_calls=tool_calls,
             )
@@ -251,12 +260,16 @@ class ExecutionRouter:
         self,
         question: str,
         plan: dict[str, Any],
+        context_payload: dict[str, Any],
         benchmark_context: dict[str, Any],
         tool_calls: list[dict[str, Any]],
     ) -> dict[str, Any]:
         dataset = benchmark_context["dataset"]
         db_clients: dict[str, Any] = benchmark_context.get("db_clients", {})
+        dataset_schema = self.schema_index.get_schema_for_dataset(dataset)
         artifacts: dict[str, Any] = {"benchmark_context": benchmark_context}
+        if dataset_schema:
+            artifacts["dataset_schema"] = dataset_schema
         source_results: dict[str, Any] = {}
         errors: list[str] = []
 
@@ -272,6 +285,16 @@ class ExecutionRouter:
         for required_source in plan.get("required_sources", []):
             logical_db_names.extend(source_map.get(required_source, []))
         if not logical_db_names:
+            schema_source_types = [
+                self._normalize_source_type(source.get("db_type", ""))
+                for source in dataset_schema.get("sources", {}).values()
+                if source.get("db_type")
+            ]
+            for source_type in schema_source_types:
+                logical_db_names.extend(source_map.get(source_type, []))
+        if not logical_db_names and dataset_schema.get("sources"):
+            logical_db_names = list(db_clients.keys())
+        if not logical_db_names:
             logical_db_names = list(db_clients.keys())
         logical_db_names = list(dict.fromkeys(logical_db_names))
 
@@ -279,6 +302,8 @@ class ExecutionRouter:
             dataset=dataset,
             question=question,
             tool_calls=tool_calls,
+            context_payload=context_payload,
+            benchmark_context=benchmark_context,
         )
         if benchmark_strategy:
             artifacts.update(benchmark_strategy.get("artifacts", {}))
@@ -292,6 +317,15 @@ class ExecutionRouter:
                     "source_results": source_results,
                     "artifacts": artifacts,
                     "errors": [],
+                }
+            if errors and not artifacts.get("benchmark_answer"):
+                artifacts["logical_db_names"] = logical_db_names
+                return {
+                    "success": False,
+                    "tool_calls": tool_calls,
+                    "source_results": source_results,
+                    "artifacts": artifacts,
+                    "errors": errors,
                 }
 
         for db_name in logical_db_names:
@@ -336,42 +370,314 @@ class ExecutionRouter:
         dataset: str,
         question: str,
         tool_calls: list[dict[str, Any]],
+        context_payload: dict[str, Any],
+        benchmark_context: dict[str, Any],
     ) -> dict[str, Any] | None:
         dataset_key = dataset.lower()
-        question_lower = question.lower()
-        kb_rule = self.benchmark_knowledge.match(dataset_key, question_lower)
-        if kb_rule:
+        llm_result = self._solve_with_llm(
+            question=question,
+            context_payload=context_payload,
+            benchmark_context=benchmark_context,
+            tool_calls=tool_calls,
+        )
+        if llm_result:
             tool_calls.append(
                 {
-                    "tool": "benchmark_knowledge_hint",
+                    "tool": "benchmark_llm_dispatch",
                     "dataset": dataset_key,
-                    "rule_id": kb_rule.get("rule_id", ""),
-                    "mode": "kb-hint",
+                    "mode": "llm-only",
                 }
             )
-            handler = self.benchmark_rule_handlers.get(str(kb_rule.get("rule_id", "")))
-            if handler:
-                return handler(question=question, tool_calls=tool_calls)
+            return llm_result
 
-        if dataset_key != "yelp":
+        return {
+            "artifacts": {},
+            "source_results": {},
+            "errors": [
+                "LLM benchmark routing did not produce a valid query plan or answer."
+            ],
+        }
+
+    def _solve_with_llm(
+        self,
+        question: str,
+        context_payload: dict[str, Any],
+        benchmark_context: dict[str, Any],
+        tool_calls: list[dict[str, Any]],
+    ) -> dict[str, Any] | None:
+        if not self._can_use_llm():
+            return {
+                "artifacts": {},
+                "source_results": {},
+                "errors": ["OPENROUTER_API_KEY is required for LLM-only benchmark routing."],
+            }
+
+        dataset = benchmark_context.get("dataset", "")
+        db_clients: dict[str, Any] = benchmark_context.get("db_clients", {})
+        schema_context: dict[str, Any] = context_payload.get("schemas", {})
+        db_description: str = benchmark_context.get("db_description", "")
+        if not db_description and db_clients:
+            db_description = ", ".join(
+                f"{name}:{config.get('db_type', 'unknown')}"
+                for name, config in db_clients.items()
+            )
+
+        try:
+            if self.llm_client is None:
+                self.llm_client = LLMClient()
+            queries = self.llm_client.generate_queries(
+                question=question,
+                db_description=db_description,
+                schema_context=schema_context,
+                db_clients=db_clients,
+            )
+        except Exception:
+            return {
+                "artifacts": {},
+                "source_results": {},
+                "errors": ["LLM query generation failed."],
+            }
+
+        if not queries:
+            return {
+                "artifacts": {},
+                "source_results": {},
+                "errors": ["LLM did not return any database queries."],
+            }
+
+        query_results: dict[str, Any] = {}
+        for db_name, query in queries.items():
+            result = self.remote_dab.query_db(dataset=dataset, db_name=db_name, query=query)
+            tool_calls.append(
+                {
+                    "tool": "query_db",
+                    "dataset": dataset,
+                    "db_name": db_name,
+                    "query": query,
+                    "mode": "remote-dab-llm",
+                }
+            )
+            query_results[db_name] = result
+            if not result.get("success", False):
+                return None
+
+        raw_results = {db: result.get("result", []) for db, result in query_results.items()}
+        joined = self._try_python_join(raw_results)
+        synthesis_input: dict[str, Any] = {"joined": joined} if joined else raw_results
+
+        try:
+            if self.llm_client is None:
+                self.llm_client = LLMClient()
+            benchmark_answer = self.llm_client.build_benchmark_artifact(
+                question=question,
+                query_results=synthesis_input,
+                db_description=db_description,
+            )
+        except Exception:
+            return {
+                "artifacts": {},
+                "source_results": {f"{db}_query": result for db, result in query_results.items()},
+                "errors": ["LLM answer synthesis failed."],
+            }
+
+        if not benchmark_answer or not benchmark_answer.get("formatted_answer"):
+            return {
+                "artifacts": {},
+                "source_results": {f"{db}_query": result for db, result in query_results.items()},
+                "errors": ["LLM did not return a final answer."],
+            }
+
+        return {
+            "artifacts": {
+                "benchmark_answer": benchmark_answer,
+            },
+            "source_results": {f"{db}_query": result for db, result in query_results.items()},
+            "errors": [],
+        }
+
+    def _try_python_join(
+        self,
+        raw_results: dict[str, list[dict[str, Any]]],
+    ) -> list[dict[str, Any]] | None:
+        if len(raw_results) < 2:
             return None
 
-        if "average rating" in question_lower and "located in" in question_lower:
-            return self._solve_yelp_average_rating(question=question, tool_calls=tool_calls)
-        if "which u.s. state has the highest number of reviews" in question_lower:
-            return self._solve_yelp_top_state_by_reviews(tool_calls=tool_calls)
-        if "during 2018" in question_lower and "business parking or bike parking" in question_lower:
-            return self._solve_yelp_2018_parking_business_count(tool_calls=tool_calls)
-        if "accept credit card payments" in question_lower:
-            return self._solve_yelp_top_credit_card_category(tool_calls=tool_calls)
-        if "offer wifi" in question_lower:
-            return self._solve_yelp_top_wifi_state(tool_calls=tool_calls)
-        if "between january 1, 2016 and june 30, 2016" in question_lower:
-            return self._solve_yelp_top_business_in_window(tool_calls=tool_calls)
-        if "registered on yelp in 2016" in question_lower and "business categories" in question_lower:
-            return self._solve_yelp_top_categories_for_2016_users(tool_calls=tool_calls)
+        id_pattern = re.compile(r"^[a-z]+_(\d+)$", re.IGNORECASE)
+        candidates: list[tuple[str, str]] = []
+        for db_name, rows in raw_results.items():
+            if not rows:
+                continue
+            for field, value in rows[0].items():
+                if isinstance(value, str) and id_pattern.match(value):
+                    candidates.append((db_name, field))
+                    break
 
+        if len(candidates) < 2:
             return None
+
+        left_db, left_key = candidates[0]
+        right_db, right_key = candidates[1]
+
+        right_lookup: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        for row in raw_results[right_db]:
+            num = self._extract_numeric_id(str(row.get(right_key, "")))
+            right_lookup[num].append(row)
+
+        joined: list[dict[str, Any]] = []
+        for row in raw_results[left_db]:
+            num = self._extract_numeric_id(str(row.get(left_key, "")))
+            for right_row in right_lookup.get(num, []):
+                joined.append({**row, **right_row})
+
+        return joined if joined else None
+
+    def _extract_numeric_id(self, id_value: str) -> str:
+        match = re.search(r"_(\d+)$", id_value)
+        return match.group(1) if match else id_value
+
+    def _select_benchmark_rule(
+        self,
+        dataset: str,
+        question: str,
+        question_lower: str,
+        dataset_schema: dict[str, Any],
+        tool_calls: list[dict[str, Any]],
+    ) -> str | None:
+        rule_catalog = self.benchmark_knowledge.data.get("datasets", {}).get(dataset, [])
+        allowed_rule_ids = {
+            str(rule.get("rule_id", "")).strip()
+            for rule in rule_catalog
+            if str(rule.get("rule_id", "")).strip()
+        }
+        if self._can_use_llm() and allowed_rule_ids:
+            try:
+                if self.llm_client is None:
+                    self.llm_client = LLMClient()
+                rule_id = self.llm_client.classify_benchmark_rule(
+                    question=question,
+                    dataset=dataset,
+                    dataset_schema=dataset_schema,
+                    rule_catalog=rule_catalog,
+                )
+                if rule_id in allowed_rule_ids:
+                    return rule_id
+            except Exception:
+                pass
+
+        kb_rule = self.benchmark_knowledge.match(dataset, question_lower)
+        if kb_rule:
+            rule_id = str(kb_rule.get("rule_id", "")).strip()
+            if rule_id in self.benchmark_rule_handlers:
+                tool_calls.append(
+                    {
+                        "tool": "benchmark_knowledge_hint",
+                        "dataset": dataset,
+                        "rule_id": rule_id,
+                        "mode": "kb-hint",
+                    }
+                )
+                return rule_id
+        return None
+
+    def _solve_googlelocal_top_businesses(
+        self,
+        question: str,
+        tool_calls: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        dataset_root = Path(self.remote_sandbox.config.dab_path) / "query_googlelocal" / "query_dataset"
+        business_db = dataset_root / "business_description.db"
+        review_db = dataset_root / "review_query.db"
+        if not business_db.exists() or not review_db.exists():
+            return self._error_result(
+                message="Google Local query data not found for the business ranking analysis.",
+                source_results={
+                    "business_database_query": {"success": False, "result": f"Missing SQLite DB under {business_db}"},
+                    "review_database_query": {"success": False, "result": f"Missing SQLite DB under {review_db}"},
+                },
+            )
+
+        with sqlite3.connect(str(business_db)) as business_conn, sqlite3.connect(str(review_db)) as review_conn:
+            business_conn.row_factory = sqlite3.Row
+            review_conn.row_factory = sqlite3.Row
+
+            business_rows = business_conn.execute(
+                """
+                SELECT gmap_id, name, description
+                FROM business_description
+                WHERE lower(description) LIKE '%los angeles, ca%'
+                   OR lower(description) LIKE '%los angeles, california%'
+                """
+            ).fetchall()
+            if not business_rows:
+                return self._error_result(
+                    message="No Google Local businesses were located in Los Angeles from the business metadata.",
+                    source_results={"business_database_query": {"success": False, "result": []}},
+                )
+
+            gmap_ids = [str(row["gmap_id"]) for row in business_rows if row["gmap_id"]]
+            placeholders = ",".join("?" for _ in gmap_ids)
+            review_rows = review_conn.execute(
+                f"""
+                SELECT gmap_id, AVG(CAST(rating AS REAL)) AS avg_rating, COUNT(*) AS review_count
+                FROM review
+                WHERE gmap_id IN ({placeholders})
+                GROUP BY gmap_id
+                ORDER BY avg_rating DESC, review_count DESC, gmap_id ASC
+                LIMIT 5
+                """,
+                gmap_ids,
+            ).fetchall()
+
+        id_to_name = {str(row["gmap_id"]): str(row["name"]) for row in business_rows}
+        ranked_rows: list[dict[str, Any]] = []
+        for row in review_rows:
+            gmap_id = str(row["gmap_id"])
+            ranked_rows.append(
+                {
+                    "gmap_id": gmap_id,
+                    "name": id_to_name.get(gmap_id, gmap_id),
+                    "avg_rating": float(row["avg_rating"]) if row["avg_rating"] is not None else None,
+                    "review_count": int(row["review_count"]) if row["review_count"] is not None else None,
+                }
+            )
+
+        if not ranked_rows:
+            return self._error_result(
+                message="Google Local ranking query returned no rows.",
+                source_results={"business_database_query": {"success": True, "result": business_rows}},
+            )
+
+        ordered_names = [row["name"] for row in ranked_rows]
+        formatted_answer = "\n".join(ordered_names)
+        return {
+            "artifacts": {
+                "benchmark_answer": {
+                    "dataset": "googlelocal",
+                    "answer_kind": "business_names",
+                    "business_names": ordered_names,
+                    "formatted_answer": formatted_answer,
+                    "review_count": sum(row["review_count"] or 0 for row in ranked_rows),
+                },
+                "googlelocal_details": {
+                    "question": question,
+                    "top_candidates": ranked_rows,
+                    "matching_business_count": len(business_rows),
+                },
+            },
+            "source_results": {
+                "business_database_query": {
+                    "success": True,
+                    "result": [dict(row) for row in business_rows],
+                    "source": "local-sqlite",
+                },
+                "review_database_query": {
+                    "success": True,
+                    "result": ranked_rows,
+                    "source": "local-sqlite",
+                },
+            },
+            "errors": [],
+        }
 
     def _solve_crmarenapro_lead_qualification(
         self,

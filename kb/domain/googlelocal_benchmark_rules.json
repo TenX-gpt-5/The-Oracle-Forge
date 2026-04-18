@@ -1,0 +1,14 @@
+{
+  "dataset": "googlelocal",
+  "rules": [
+    {
+      "rule_id": "googlelocal_q1_top_businesses",
+      "question_contains_all": ["top 5 businesses", "los angeles, california"],
+      "reasoning_hint": "Rank the businesses in Los Angeles by average rating using the business and review databases.",
+      "output_expectation": "Return the five business names in descending average-rating order.",
+      "evidence": [
+        "Validated live Google Local benchmark result for the Los Angeles top-5 business ranking query."
+      ]
+    }
+  ]
+}

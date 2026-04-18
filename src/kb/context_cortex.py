@@ -46,11 +46,13 @@ class ContextCortex:
         entities = plan.get("entities", [])
         required_sources = plan.get("required_sources", [])
         domain_terms = plan.get("needs_domain_resolution", [])
+        dataset = benchmark_context.get("dataset", "")
+        dataset_schema = self.schema_index.get_schema_for_dataset(dataset) if dataset else {}
 
-        schema_context = {
-            source: self.schema_index.get_schema_for_db(source)
-            for source in required_sources
-        }
+        if dataset_schema.get("sources"):
+            schema_context = dataset_schema["sources"]
+        else:
+            schema_context = {source: self.schema_index.get_schema_for_db(source) for source in required_sources}
         join_context = {
             entity: self.join_key_store.get_normalization_method(entity)
             for entity in entities
@@ -71,6 +73,7 @@ class ContextCortex:
                 "domain_definitions": self.project_memory.get_domain_definitions(domain_terms),
                 "corrections": corrections,
             },
+            "dataset_schema": dataset_schema,
             "schemas": schema_context,
             "join_key_intelligence": join_context,
             "text_field_inventory": text_context,

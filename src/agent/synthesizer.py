@@ -6,10 +6,16 @@ Converts validated execution artifacts into a user-facing answer.
 
 from __future__ import annotations
 
+import os
 from typing import Any
+
+from src.tools.llm_client import LLMClient
 
 
 class AnswerSynthesizer:
+    def __init__(self) -> None:
+        self.llm_client: LLMClient | None = None
+
     def synthesize(
         self,
         question: str,
@@ -84,6 +90,11 @@ class AnswerSynthesizer:
                 )
             return str(benchmark_answer.get("formatted_answer", "Benchmark answer available."))
 
+        if self._can_use_llm():
+            llm_answer = self._llm_synthesize(question, execution_result, context_payload)
+            if llm_answer:
+                return llm_answer
+
         if plan.get("question_type") == "schema_discovery":
             parts = []
             for source, result in execution_result.get("source_results", {}).items():
@@ -110,3 +121,27 @@ class AnswerSynthesizer:
 
         evidence = validation.get("evidence", [])
         return "Validated analytical summary complete. Evidence: " + "; ".join(evidence)
+
+    def _can_use_llm(self) -> bool:
+        return bool(os.getenv("OPENROUTER_API_KEY", ""))
+
+    def _llm_synthesize(
+        self,
+        question: str,
+        execution_result: dict[str, Any],
+        context_payload: dict[str, Any],
+    ) -> str | None:
+        try:
+            if self.llm_client is None:
+                self.llm_client = LLMClient()
+            db_description = ""
+            benchmark_context = context_payload.get("benchmark_context", {})
+            db_clients = benchmark_context.get("db_clients", {})
+            if db_clients:
+                db_description = ", ".join(
+                    f"{name}:{config.get('db_type', 'unknown')}"
+                    for name, config in db_clients.items()
+                )
+            return self.llm_client.synthesize_answer(question, execution_result, db_description)
+        except Exception:
+            return None
